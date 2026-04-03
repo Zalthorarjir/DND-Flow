@@ -17,9 +17,18 @@ DND Flow is a self-hosted Discord bot with optional online and offline web dashb
 #### Discord Developer Portal Setup
 
 1. **Create a New Application** → go to the **Bot** tab → click **Reset Token** → copy and save your bot token.
+   - ➡️ Paste the token into `Discord_Bot\.env` as `DISCORD_TOKEN=your-token-here`
 2. **OAuth2 → General**
-   - Add a **Redirect URL**: `https://example.com/callback` (replace with your actual domain, e.g. `https://yourdomain.com/callback`)
+   - Copy your **Client ID** from the top of the page.
    - Click **Reset Secret** to generate a **Client Secret** — copy and save it.
+   - Add a **Redirect URL**: `https://example.com/callback` (replace with your actual domain, e.g. `https://yourdomain.com/callback`)
+   - ➡️ Paste these into `Online_Web_Server\.env`:
+     ```
+     DISCORD_CLIENT_ID=your-client-id-here
+     DISCORD_CLIENT_SECRET=your-client-secret-here
+     DISCORD_REDIRECT_URI=https://yourdomain.com/callback
+     ```
+     > The Redirect URL in the Developer Portal **must exactly match** `DISCORD_REDIRECT_URI` in your `.env` file.
 3. **Installation → Installation Contexts**
    - Enable **Guild Install**
    - **Scopes:** `applications.commands`, `bot`
@@ -48,9 +57,9 @@ cd DND-Flow
 # 2. Run the installer (creates venv, installs deps, generates .env files)
 setup_install.bat
 
-# 3. Add your bot token
-#    Open Discord_Bot\.env and set:
-#    DISCORD_TOKEN=your-token-here
+# 3. Fill in your .env files with the values from the Developer Portal (see above):
+#    Discord_Bot\.env            → DISCORD_TOKEN
+#    Online_Web_Server\.env      → DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_REDIRECT_URI
 
 # 4. Start the bot
 Discord_Bot\start_bot.bat
@@ -199,7 +208,9 @@ See the full terms in [`LICENSE`](LICENSE).
 ## Setup
 
 1. Run `setup_install.bat`
-2. Fill in your local `.env` values
+2. Fill in your local `.env` values (see [Discord Developer Portal Setup](#discord-developer-portal-setup) above):
+   - `Discord_Bot\.env` → `DISCORD_TOKEN`
+   - `Online_Web_Server\.env` → `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_REDIRECT_URI`
 3. Start the component(s) you want:
    - `Discord_Bot\start_bot.bat`
    - `Online_Web_Server\start.bat`
