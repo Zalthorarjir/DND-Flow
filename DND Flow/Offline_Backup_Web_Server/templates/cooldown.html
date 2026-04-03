@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Work Cooldown - Discord Bot Admin Panel{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Work Cooldown Settings</h1>
+    <p>Configure how often users can use the /work command</p>
+</div>
+
+<div class="cooldown-container">
+    <div class="form-card">
+        <h2>Set Work Cooldown</h2>
+        <form id="cooldownForm">
+            <div class="form-group">
+                <label for="cooldown_days">Cooldown (days):</label>
+                <input type="number" id="cooldown_days" name="cooldown_days" min="0" value="{{ cooldown_days }}">
+                <small>Set to 0 for no cooldown, allow work command multiple times per day</small>
+            </div>
+
+            <div class="info-box">
+                <h3>Examples:</h3>
+                <ul>
+                    <li><strong>0</strong> = No cooldown (users can work anytime)</li>
+                    <li><strong>1</strong> = Once per day</li>
+                    <li><strong>7</strong> = Once per week</li>
+                    <li><strong>30</strong> = Once per month</li>
+                </ul>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Update Cooldown</button>
+        </form>
+    </div>
+
+    <div class="cooldown-info">
+        <h2>ℹ️ Current Settings</h2>
+        <div class="info-box">
+            <p><strong>Current cooldown:</strong> <span class="cooldown-display">{{ cooldown_days }}</span> day(s)</p>
+            {% if cooldown_days == 0 %}
+            <p style="color: #00b894;">✓ Users can work multiple times per day</p>
+            {% elif cooldown_days == 1 %}
+            <p>Users can work once per day</p>
+            {% else %}
+            <p>Users can work once every {{ cooldown_days }} days</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('cooldownForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const days = parseInt(document.getElementById('cooldown_days').value);
+
+    const formData = { days: days };
+
+    try {
+        const response = await fetch('/api/cooldown/set', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+        const data = await response.json();
+        if (data.success) {
+            showAlert(`Cooldown updated to ${days} day(s)!`, 'success');
+            document.querySelector('.cooldown-display').textContent = days;
+        } else {
+            showAlert('Error: ' + data.error, 'error');
+        }
+    } catch (error) {
+        showAlert('Error: ' + error.message, 'error');
+    }
+});
+</script>
+{% endblock %}

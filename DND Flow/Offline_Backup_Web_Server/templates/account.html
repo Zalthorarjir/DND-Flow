@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Account - Discord Bot Admin Panel{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Account Settings</h1>
+    <p>Manage your admin account security</p>
+</div>
+
+<div class="account-container">
+    <div class="form-card">
+        <h2>👤 Account Information</h2>
+        <div class="info-box">
+            <p><strong>Username:</strong> <code>{{ username }}</code></p>
+            <p style="color: #ff6b6b;"><strong>⚠️ Important:</strong> Change your password regularly for security!</p>
+        </div>
+    </div>
+
+    <div class="form-card">
+        <h2>🔐 Change Password</h2>
+        <form id="passwordForm">
+            <div class="form-group">
+                <label for="current_password">Current Password:</label>
+                <input type="password" id="current_password" name="current_password" required>
+            </div>
+
+            <div class="form-group">
+                <label for="new_password">New Password:</label>
+                <input type="password" id="new_password" name="new_password" required minlength="8">
+                <small>Minimum 8 characters recommended</small>
+            </div>
+
+            <div class="form-group">
+                <label for="confirm_password">Confirm New Password:</label>
+                <input type="password" id="confirm_password" name="confirm_password" required minlength="8">
+            </div>
+
+            <button type="submit" class="btn btn-primary">Change Password</button>
+        </form>
+    </div>
+
+    <div class="security-tips">
+        <h2>🛡️ Security Tips</h2>
+        <ul>
+            <li>Use a strong password with letters, numbers, and symbols</li>
+            <li>Change your password regularly</li>
+            <li>Do not share your password with anyone</li>
+            <li>This admin panel only runs locally on your machine</li>
+            <li>Close the browser tab when not in use</li>
+        </ul>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const newPassword = document.getElementById('new_password').value;
+    const confirmPassword = document.getElementById('confirm_password').value;
+
+    if (newPassword !== confirmPassword) {
+        showAlert('Passwords do not match!', 'error');
+        return;
+    }
+
+    if (newPassword.length < 8) {
+        showAlert('Password must be at least 8 characters long!', 'error');
+        return;
+    }
+
+    const formData = {
+        current_password: document.getElementById('current_password').value,
+        new_password: newPassword
+    };
+
+    try {
+        const response = await fetch('/api/account/change-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+        const data = await response.json();
+        if (data.success) {
+            showAlert('Password changed successfully!', 'success');
+            document.getElementById('passwordForm').reset();
+        } else {
+            showAlert('Error: ' + data.error, 'error');
+        }
+    } catch (error) {
+        showAlert('Error: ' + error.message, 'error');
+    }
+});
+</script>
+{% endblock %}

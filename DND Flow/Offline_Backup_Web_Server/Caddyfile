@@ -1,0 +1,27 @@
+# Localhost-only Caddy config for offline backup usage.
+# Optional wrapper: listen on 5002 and forward to Flask on 127.0.0.1:5002.
+
+{
+    log {
+        level ERROR
+    }
+}
+
+http://localhost:5002 {
+    reverse_proxy 127.0.0.1:5002
+
+    @static_assets path_regexp static_assets \\.(css|js|mjs|png|jpg|jpeg|gif|webp|svg|ico|woff|woff2|ttf|map|avif)$
+    header @static_assets Cache-Control "public, max-age=86400, stale-while-revalidate=604800"
+
+    @dynamic_paths path / /dashboard* /server-selector* /login* /logout* /oauth* /api/*
+    header @dynamic_paths Cache-Control "no-store, no-cache, must-revalidate, private"
+    header @dynamic_paths Pragma "no-cache"
+    header @dynamic_paths Expires "0"
+
+    header {
+        # Keep these defaults explicit for troubleshooting and security clarity.
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy strict-origin-when-cross-origin
+    }
+}

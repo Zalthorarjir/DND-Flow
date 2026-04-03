@@ -1,0 +1,4459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Bot - Admin Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1460px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            border-bottom: 3px solid #5568d3;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 30px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-shrink: 0;
+        }
+
+        .server-pill {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.14);
+            padding: 10px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+        }
+
+        .server-pill-icon {
+            font-size: 1.5em;
+            line-height: 1;
+        }
+
+        .server-pill-guild-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .server-pill-guild-icon-fallback {
+            font-size: 1.5em;
+            line-height: 1;
+        }
+
+        .server-pill-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .server-switch-link {
+            color: #e2ecff;
+            text-decoration: underline;
+            font-size: 0.82em;
+            font-weight: 700;
+        }
+
+        .server-switch-link:hover {
+            color: #ffffff;
+        }
+
+        .header-left img {
+            height: 70px;
+            width: 70px;
+            object-fit: contain;
+        }
+
+        .header-center {
+            flex: 1;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin: 0;
+            margin-bottom: 5px;
+        }
+
+        .brand-link {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .brand-link:hover {
+            text-decoration: underline;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 0.95em;
+            margin: 0;
+        }
+
+        .header-right {
+            flex-shrink: 0;
+        }
+
+        .header-auth {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.14);
+            padding: 10px 15px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+        }
+
+        .header-auth-user {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #f8fbff;
+            white-space: nowrap;
+        }
+
+        .header-logout-btn {
+            display: inline-block;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            color: #ffffff;
+            background: rgba(0, 0, 0, 0.16);
+            text-decoration: none;
+            font-size: 0.84em;
+            font-weight: 700;
+            padding: 6px 10px;
+            border-radius: 999px;
+            transition: all 0.2s;
+        }
+
+        .header-logout-btn:hover {
+            background: rgba(220, 53, 69, 0.85);
+            border-color: rgba(255, 255, 255, 0.9);
+        }
+
+        .tabs {
+            display: flex;
+            background: #f5f5f5;
+            border-bottom: 1px solid #ddd;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            flex: 1;
+            min-width: 150px;
+            padding: 15px 10px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn:hover {
+            color: #667eea;
+            background: #eee;
+        }
+
+        .tab-btn.active {
+            color: white;
+            background: #667eea;
+            border-bottom-color: #764ba2;
+        }
+
+        .content {
+            padding: 30px;
+            min-height: 500px;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s;
+            overflow-x: hidden;
+            box-sizing: border-box;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label,
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="email"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 0.95em;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="email"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+            flex: 1;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+            padding: 6px 12px;
+            font-size: 0.85em;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-tiny {
+            padding: 5px 10px;
+            font-size: 0.8em;
+        }
+
+        .import-btn-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 8px;
+        }
+
+        #import-sheet-btn {
+            flex: 0 0 auto;
+            width: auto;
+            padding: 3px 8px;
+            font-size: 0.72em;
+            line-height: 1.2;
+        }
+
+        .add-field-action {
+            display: block;
+        }
+
+        .add-field-label-spacer {
+            visibility: hidden;
+            user-select: none;
+        }
+
+        #add-field-btn {
+            width: 100%;
+            height: 42px;
+            line-height: 1.15;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .list-container {
+            display: grid;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .list-item {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            padding: 15px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .list-item:hover {
+            background: #f0f0f0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .list-item-info {
+            flex: 1;
+        }
+
+        .list-item-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 3px;
+        }
+
+        .list-item-detail {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .audit-table-wrap {
+            overflow-x: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: #fff;
+        }
+
+        .audit-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 760px;
+            font-size: 0.86em;
+        }
+
+        .audit-table thead th {
+            background: #f3f4f6;
+            color: #374151;
+            text-align: left;
+            padding: 10px 8px;
+            border-bottom: 1px solid #d1d5db;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .audit-table td {
+            vertical-align: top;
+            padding: 8px;
+            border-bottom: 1px solid #eceff3;
+            color: #1f2937;
+            line-height: 1.35;
+        }
+
+        .audit-entry-alt td {
+            background: #fafafa;
+        }
+
+        .audit-entry-start td {
+            border-top: 1px solid #d1d5db;
+        }
+
+        .audit-cell-label {
+            font-size: 0.72em;
+            font-weight: 700;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 4px;
+        }
+
+        .audit-cell-value {
+            color: #111827;
+            font-weight: 500;
+        }
+
+        .audit-pill {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 0.82em;
+            font-weight: 600;
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .audit-code {
+            display: block;
+            width: 100%;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: Consolas, Monaco, monospace;
+            font-size: 0.86em;
+            color: #111827;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 6px;
+        }
+
+        .alert {
+            padding: 12px 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .alert.alert-slot {
+            display: block;
+            min-height: 46px;
+            visibility: hidden;
+            background: transparent;
+            border: 1px solid transparent;
+        }
+
+        .alert.alert-slot.show {
+            visibility: visible;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .server-shop-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 14px;
+            margin-top: 16px;
+        }
+
+        .server-shop-card {
+            background: #ffffff;
+            border: 1px solid #d5deea;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+        }
+
+        .server-shop-image-wrap {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border-radius: 8px;
+            border: 1px solid #d5deea;
+            background: #edf2f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .server-shop-image-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .server-shop-name {
+            font-size: 0.96em;
+            font-weight: 700;
+            color: #132033;
+            margin: 2px 0 0;
+        }
+
+        .server-shop-description {
+            font-size: 0.85em;
+            color: #53627a;
+            line-height: 1.35;
+            min-height: 2.4em;
+        }
+
+        .server-shop-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.84em;
+            color: #334155;
+            gap: 8px;
+            margin-top: auto;
+        }
+
+        .server-shop-qty {
+            width: 72px;
+            padding: 5px 7px;
+            font-size: 0.84em;
+        }
+
+        .server-shop-buy-btn {
+            margin-top: 0;
+            width: 100%;
+            min-width: 0;
+            padding: 7px 9px;
+            font-size: 0.84em;
+        }
+
+        .server-shop-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .server-shop-balance {
+            padding: 10px 12px;
+            border: 1px solid #d5deea;
+            background: #edf2f9;
+            border-radius: 8px;
+            color: #132033;
+            font-weight: 700;
+        }
+
+        .card {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        .card-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 8px;
+        }
+
+        .card-content {
+            font-size: 0.95em;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .footer {
+            background: #f5f5f5;
+            padding: 15px 30px;
+            text-align: center;
+            color: #666;
+            border-top: 1px solid #ddd;
+            font-size: 0.9em;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .users-toolbar {
+            display: flex;
+            gap: 15px;
+            align-items: end;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .users-toolbar .form-group {
+            flex: 1;
+            min-width: 240px;
+        }
+
+        .users-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 16px;
+            overflow-x: hidden;
+        }
+
+        .user-card {
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+            padding: 18px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            background: #fafafa;
+            cursor: pointer;
+            transition: box-shadow 0.15s, border-color 0.15s;
+        }
+
+        .user-card:hover {
+            box-shadow: 0 4px 14px rgba(102,126,234,0.15);
+            border-color: #a5b4fc;
+        }
+
+        /* ---- User Detail Panel ---- */
+        .detail-back-btn {
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 8px 18px;
+            cursor: pointer;
+            font-size: 0.93em;
+            color: #374151;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+        .detail-back-btn:hover { background: #e5e7eb; }
+
+        .user-detail-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+
+        .detail-user-avatar {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            border: 2px solid #d9deff;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .detail-user-name {
+            font-size: 1.25em;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .detail-user-role {
+            font-size: 0.88em;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+
+        .detail-section {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+        }
+
+        .detail-section h3 {
+            font-size: 0.97em;
+            font-weight: 700;
+            color: #374151;
+            margin: 0 0 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .resource-grid {
+            display: grid;
+            grid-template-columns: 160px 1fr;
+            gap: 16px;
+            align-items: start;
+        }
+
+        .resource-grid > div {
+            min-width: 0;
+        }
+
+        .resource-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .currency-input {
+            width: 100%;
+            margin-top: 8px;
+            text-align: center;
+            font-size: 1em;
+            font-weight: 600;
+        }
+
+        .resource-note {
+            margin-top: 8px;
+            font-size: 0.82em;
+            color: #6b7280;
+        }
+
+        .currency-save-btn {
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .inventory-save-btn {
+            padding: 4px 9px;
+            font-size: 0.74em;
+            flex: 0 0 auto;
+            width: auto;
+        }
+
+        .currency-box {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 14px;
+            text-align: center;
+        }
+
+        .currency-label {
+            font-size: 0.78em;
+            color: #6b7280;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .currency-value {
+            font-size: 1.6em;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .inventory-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+        }
+
+        .inventory-table th {
+            text-align: left;
+            color: #6b7280;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .inventory-table td {
+            padding: 7px 8px;
+            border-bottom: 1px solid #f3f4f6;
+            color: #1f2937;
+        }
+
+        .inventory-table input {
+            width: 100%;
+            min-width: 80px;
+        }
+
+        .inventory-row-actions {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .inline-empty {
+            color: #9ca3af;
+            text-align: center;
+            padding: 12px;
+        }
+
+        .character-detail-panel {
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .character-detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .character-fields-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+            table-layout: fixed;
+        }
+
+        .character-fields-table th,
+        .character-fields-table td {
+            text-align: left;
+            vertical-align: top;
+            padding: 8px;
+            border-bottom: 1px solid #f3f4f6;
+            color: #1f2937;
+            overflow-wrap: anywhere;
+        }
+
+        .character-fields-table th {
+            color: #6b7280;
+            font-weight: 600;
+            width: 180px;
+        }
+
+        .inventory-table tr:last-child td { border-bottom: none; }
+
+        .character-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .character-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 14px;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            background: #fafafa;
+        }
+
+        .char-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 1px solid #d1d5db;
+            background: #e9ecef;
+        }
+
+        .char-info { flex: 1; min-width: 0; }
+
+        .char-name {
+            font-size: 0.97em;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 4px;
+        }
+
+        .char-status-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.76em;
+            font-weight: 600;
+        }
+
+        .badge-approved  { background: #d1fae5; color: #065f46; }
+        .badge-denied    { background: #fee2e2; color: #991b1b; }
+        .badge-draft     { background: #f3f4f6; color: #4b5563; }
+        .badge-discuss   { background: #dbeafe; color: #1e40af; }
+        .badge-submitted { background: #fef3c7; color: #92400e; }
+
+        .char-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: flex-end;
+        }
+
+        .char-actions-primary,
+        .char-actions-secondary {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .char-btn {
+            padding: 5px 12px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.8em;
+            font-weight: 600;
+            transition: opacity 0.15s;
+        }
+
+        .char-btn:hover:not(:disabled) { opacity: 0.8; }
+        .char-btn:disabled { opacity: 0.35; cursor: default; }
+        .char-link {
+            display: inline-block;
+            text-decoration: none;
+            text-align: center;
+        }
+        .char-btn.btn-approve { background: #059669; color: #fff; }
+        .char-btn.btn-deny    { background: #dc2626; color: #fff; }
+        .char-btn.btn-discuss { background: #3b82f6; color: #fff; }
+        .char-btn.btn-draft   { background: #9ca3af; color: #fff; }
+
+        .user-avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #e9ecef;
+            flex-shrink: 0;
+            border: 2px solid #d9deff;
+        }
+
+        .user-meta {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-name {
+            font-size: 1.05em;
+            font-weight: 700;
+            color: #2f3441;
+            margin-bottom: 4px;
+            word-break: break-word;
+        }
+
+        .user-subtitle {
+            font-size: 0.9em;
+            color: #6b7280;
+            margin-bottom: 12px;
+        }
+
+        .user-stats {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .user-stat {
+            background: white;
+            border: 1px solid #ececec;
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+
+        .user-stat-label {
+            display: block;
+            color: #6b7280;
+            font-size: 0.82em;
+            margin-bottom: 4px;
+        }
+
+        .user-stat-value {
+            color: #1f2937;
+            font-size: 1.15em;
+            font-weight: 700;
+        }
+
+        @media (max-width: 768px) {
+            .form-row,
+            .two-col {
+                grid-template-columns: 1fr;
+            }
+
+            .tab-btn {
+                min-width: 120px;
+                font-size: 0.85em;
+            }
+
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            .user-card {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+
+            .user-stats {
+                width: 100%;
+            }
+
+            .audit-table {
+                font-size: 0.75em;
+                min-width: auto;
+            }
+
+            .audit-table th,
+            .audit-table td {
+                padding: 6px 4px;
+            }
+
+            .audit-cell-label {
+                font-size: 0.65em;
+            }
+
+            .users-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .server-shop-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .users-toolbar .form-group {
+                flex: 1;
+                min-width: 100%;
+            }
+
+            .currency-box {
+                margin-bottom: 15px;
+            }
+
+            .inventory-table {
+                font-size: 0.8em;
+            }
+
+            .resource-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .inventory-row-actions {
+                white-space: normal;
+            }
+
+            .character-card {
+                flex-wrap: wrap;
+                align-items: flex-start;
+            }
+
+            .char-actions {
+                width: 100%;
+                align-items: stretch;
+            }
+
+            .char-actions-primary,
+            .char-actions-secondary {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .character-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .header-left,
+            .header-right {
+                flex-shrink: 0;
+            }
+        }
+
+        @media (max-width: 1100px) {
+            .server-shop-grid {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 900px) {
+            .server-shop-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #667eea;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .shop-item-thumb-placeholder {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            background: #f0f0f0;
+        }
+
+        /* Color refresh overrides (layout unchanged) */
+        :root {
+            --bg-a: #505966;
+            --bg-b: #6b7380;
+            --surface-main: #dce4ef;
+            --surface-card: #ffffff;
+            --surface-muted: #eaf0f7;
+            --border-soft: #d5deea;
+            --text-main: #132033;
+            --text-muted: #53627a;
+            --brand: #2563eb;
+            --brand-strong: #1d4ed8;
+            --brand-soft: #dbeafe;
+            --ok: #0f766e;
+            --ok-soft: #ccfbf1;
+            --warn: #b45309;
+            --warn-soft: #fef3c7;
+            --danger: #be123c;
+            --danger-strong: #9f1239;
+            --danger-soft: #ffe4e6;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-a) 0%, var(--bg-b) 100%);
+            color: var(--text-main);
+        }
+
+        .container {
+            background: var(--surface-main);
+            box-shadow: 0 24px 56px rgba(7, 14, 26, 0.35);
+        }
+
+        .header {
+            background: linear-gradient(130deg, #0f4dc7 0%, #0ea5a4 100%);
+            border-bottom-color: #0b3ca0;
+        }
+
+        .tabs {
+            background: #e8eef7;
+            border-bottom-color: var(--border-soft);
+        }
+
+        .tab-btn {
+            color: #3f4f67;
+            border: 1px solid #c5cfdd;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn:hover {
+            color: var(--brand-strong);
+            background: #dbe7f7;
+            border-color: #aebbd0;
+        }
+
+        .tab-btn.active {
+            color: #ffffff;
+            background: #374151;
+            border-color: #1f2937;
+            border-bottom-color: #111827;
+        }
+
+        h2 {
+            color: var(--text-main);
+            border-bottom-color: var(--brand);
+        }
+
+        label,
+        .list-item-title,
+        .card-title,
+        .detail-user-name,
+        .char-name,
+        .user-name {
+            color: var(--text-main);
+        }
+
+        .list-item-detail,
+        .card-content,
+        .detail-user-role,
+        .user-subtitle,
+        .user-stat-label,
+        .resource-note,
+        .currency-label,
+        .audit-cell-label,
+        .footer {
+            color: var(--text-muted);
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="email"],
+        textarea,
+        select {
+            background: #ffffff;
+            border-color: var(--border-soft);
+            color: var(--text-main);
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="email"]:focus,
+        textarea:focus,
+        select:focus {
+            border-color: var(--brand);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+        }
+
+        .btn-primary {
+            background: var(--brand);
+        }
+
+        .btn-primary:hover {
+            background: var(--brand-strong);
+            box-shadow: 0 5px 15px rgba(37, 99, 235, 0.32);
+        }
+
+        .btn-secondary {
+            background: #475569;
+        }
+
+        .btn-secondary:hover {
+            background: #334155;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background: var(--danger-strong);
+        }
+
+        .list-item,
+        .card,
+        .detail-section,
+        .currency-box,
+        .user-stat,
+        .character-card,
+        .user-card,
+        .audit-table-wrap {
+            background: var(--surface-card);
+            border-color: var(--border-soft);
+            box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+        }
+
+        .list-item:hover {
+            background: #f7faff;
+            box-shadow: 0 2px 8px rgba(19, 32, 51, 0.08);
+        }
+
+        .user-card:hover {
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.16);
+            border-color: #9ab7ff;
+        }
+
+        .detail-back-btn {
+            background: #eef4fb;
+            border-color: var(--border-soft);
+            color: #334155;
+        }
+
+        .detail-back-btn:hover {
+            background: #dfe9f6;
+        }
+
+        .audit-table thead th {
+            background: #e9f0fa;
+            color: #22324a;
+            border-bottom-color: var(--border-soft);
+        }
+
+        .audit-table td {
+            color: var(--text-main);
+            border-bottom-color: #e3eaf5;
+        }
+
+        .audit-entry-alt td {
+            background: #f7faff;
+        }
+
+        .audit-pill {
+            background: var(--brand-soft);
+            color: #1e3a8a;
+        }
+
+        .audit-code {
+            background: #f8fbff;
+            border-color: var(--border-soft);
+            color: #0f172a;
+        }
+
+        .alert-success {
+            background: var(--ok-soft);
+            color: #115e59;
+            border-color: #99f6e4;
+        }
+
+        .alert-error {
+            background: var(--danger-soft);
+            color: #9f1239;
+            border-color: #fecdd3;
+        }
+
+        .alert-info {
+            background: var(--brand-soft);
+            color: #1e40af;
+            border-color: #bfdbfe;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #1d4ed8 0%, #0ea5a4 100%);
+            box-shadow: 0 10px 22px rgba(15, 23, 42, 0.2);
+        }
+
+        .badge-approved  { background: var(--ok-soft); color: #115e59; }
+        .badge-denied    { background: var(--danger-soft); color: #9f1239; }
+        .badge-draft     { background: #e2e8f0; color: #334155; }
+        .badge-discuss   { background: #dbeafe; color: #1e3a8a; }
+        .badge-submitted { background: var(--warn-soft); color: #92400e; }
+
+        .char-btn.btn-approve { background: var(--ok); color: #fff; }
+        .char-btn.btn-deny    { background: var(--danger); color: #fff; }
+        .char-btn.btn-discuss { background: var(--brand); color: #fff; }
+        .char-btn.btn-draft   { background: #64748b; color: #fff; }
+
+        .footer {
+            background: #0f4dc7;
+            color: #dbe7ff;
+            border-top-color: #0b3ca0;
+        }
+
+        .loading {
+            background: var(--brand);
+        }
+
+        .shop-item-thumb-placeholder {
+            background: #e2e8f0;
+        }
+
+        @media (max-width: 640px) {
+            .detail-section {
+                padding: 14px;
+            }
+
+            .character-fields-table th {
+                width: 120px;
+            }
+
+            .server-shop-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .server-shop-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .server-pill {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .header-auth {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                width: 100%;
+                border-radius: 10px;
+            }
+
+            .header-auth-user {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-left">
+                <div class="server-pill">
+                    <img id="active-server-guild-icon" src="{{ active_server_icon_url or '' }}" alt="" class="server-pill-guild-icon"{% if not active_server_icon_url %} style="display:none;"{% endif %} onerror="this.style.display='none';document.getElementById('active-server-guild-icon-fallback').style.display='inline';">
+                    <span id="active-server-guild-icon-fallback" class="server-pill-guild-icon-fallback"{% if active_server_icon_url %} style="display:none;"{% endif %}>🛡️</span>
+                    <div class="server-pill-meta">
+                        <span id="active-server-label" class="header-auth-user">{{ active_server_name or 'Not selected' }}</span>
+                        <a class="server-switch-link" href="{{ url_for('index') }}">Switch Server</a>
+                    </div>
+                </div>
+            </div>
+            <div class="header-center">
+                <h1><img src="/static/icon.png" alt="DND Flow" style="height:36px; width:36px; vertical-align:middle; margin-right:8px;"><a class="brand-link" href="{{ url_for('index') }}">DND Flow</a></h1>
+                <p>Sheets, Roleplay Mechanics, The Character Bot for the Flow!</p>
+            </div>
+            <div class="header-right">
+                <div class="header-auth">
+                    <span class="header-auth-user">Signed in as {{ current_user.display_name or current_user.username }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            {% if 'overview' in allowed_tabs %}<button class="tab-btn" data-tab="overview" onclick="switchTab('overview', this)">Overview</button>{% endif %}
+            {% if 'server' in allowed_tabs %}<button class="tab-btn" data-tab="server" onclick="switchTab('server', this)">Server Config</button>{% endif %}
+            {% if 'server_shop' in allowed_tabs %}<button class="tab-btn" data-tab="server_shop" onclick="switchTab('server_shop', this)">Server Shop</button>{% endif %}
+            {% if 'shop' in allowed_tabs %}<button class="tab-btn" data-tab="shop" onclick="switchTab('shop', this)">Shop</button>{% endif %}
+            {% if 'jobs' in allowed_tabs %}<button class="tab-btn" data-tab="jobs" onclick="switchTab('jobs', this)">Jobs</button>{% endif %}
+            {% if 'items' in allowed_tabs %}<button class="tab-btn" data-tab="items" onclick="switchTab('items', this)">Items</button>{% endif %}
+            {% if 'settings' in allowed_tabs %}<button class="tab-btn" data-tab="settings" onclick="switchTab('settings', this)">Settings</button>{% endif %}
+            {% if 'audit' in allowed_tabs %}<button class="tab-btn" data-tab="audit" onclick="switchTab('audit', this)">Audit</button>{% endif %}
+            {% if 'users' in allowed_tabs %}<button class="tab-btn" data-tab="users" onclick="switchTab('users', this)">Users</button>{% endif %}
+        </div>
+
+        <div class="content">
+            <!-- OVERVIEW TAB -->
+            <div id="overview" class="tab-content">
+                <h2>Dashboard Overview</h2>
+                <div id="alert-overview" class="alert"></div>
+
+                <div class="two-col">
+                    <div class="card">
+                        <div class="card-title">📊 Shop</div>
+                        <div class="card-content">
+                            <p>Items: <strong id="stat-shop-items">0</strong></p>
+                            <p style="margin-top: 10px; font-size: 0.9em; color: #999;">Manage products and prices</p>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">💼 Jobs</div>
+                        <div class="card-content">
+                            <p>Active Jobs: <strong id="stat-jobs">0</strong></p>
+                            <p style="margin-top: 10px; font-size: 0.9em; color: #999;">Configure work payments</p>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">🎁 Items</div>
+                        <div class="card-content">
+                            <p>Total Items: <strong id="stat-items">0</strong></p>
+                            <p style="margin-top: 10px; font-size: 0.9em; color: #999;">Inventory system</p>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">⚙️ System</div>
+                        <div class="card-content">
+                            <p>Status: <strong style="color: #28a745;">Active</strong></p>
+                            <p style="margin-top: 10px; font-size: 0.9em; color: #999;">All systems operational</p>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+
+            <!-- SERVER CONFIG TAB -->
+            <div id="server" class="tab-content">
+                <h2>Server Configuration</h2>
+                <div id="alert-server" class="alert"></div>
+                <div style="display:flex; justify-content:flex-end; margin-bottom:16px;">
+                    <button id="server-reset-btn" class="btn-danger" onclick="resetServerConfig()">Reset Selected Server Config</button>
+                </div>
+
+                <div class="section">
+                    <h3 style="margin-bottom: 15px;">Edit Selected Server</h3>
+                    <p style="color: #666; font-size: 0.95em; margin-bottom: 18px;">This tab edits the server selected on the homepage.</p>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="admin-role">Admin Role ID</label>
+                            <input type="text" inputmode="numeric" id="admin-role" placeholder="Admin role ID (optional)">
+                        </div>
+                        <div class="form-group">
+                            <label for="admin-channel">Admin Channel ID</label>
+                            <input type="text" inputmode="numeric" id="admin-channel" placeholder="Admin channel ID (optional)">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="member-role">Member Role ID</label>
+                            <input type="text" inputmode="numeric" id="member-role" placeholder="Member role ID (optional)">
+                        </div>
+                        <div class="form-group">
+                            <label for="member-channel">Member Channel ID</label>
+                            <input type="text" inputmode="numeric" id="member-channel" placeholder="Member channel ID (optional)">
+                        </div>
+                    </div>
+
+                    <button id="server-save-btn" class="btn-primary" onclick="saveServer()">Save Server Config</button>
+                </div>
+
+                <div id="sheet-fields-section" class="section">
+                    <h3 style="margin-bottom: 15px;">Sheet Fields</h3>
+                    <p style="color: #666; font-size: 0.9em; margin-bottom: 15px;">
+                        Status and Name are permanent fields and cannot be removed.
+                    </p>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="field-name">New Field Name</label>
+                            <input type="text" id="field-name" placeholder="e.g., Age, Background, Skills">
+                        </div>
+                        <div class="form-group add-field-action">
+                            <span class="add-field-label-spacer" aria-hidden="true">New Field Name</span>
+                            <button id="add-field-btn" class="btn-primary" onclick="addField()">Add Field</button>
+                        </div>
+                    </div>
+
+                    <div id="fields-list" class="list-container">
+                        <p style="text-align: center; color: #999; padding: 20px;">Loading fields...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SHOP TAB -->
+            <div id="shop" class="tab-content">
+                <h2>Shop Management</h2>
+                <div id="alert-shop" class="alert"></div>
+                <div style="display:flex; justify-content:flex-end; margin-bottom:16px;">
+                    <button class="btn-danger" onclick="resetShop()">Reset Shop</button>
+                </div>
+
+                <div class="section">
+                    <h3 style="margin-bottom: 15px;">Add Item to Shop</h3>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="shop-item-select">Select Item</label>
+                            <select id="shop-item-select">
+                                <option value="">-- Choose an item --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="shop-item-price">Price</label>
+                            <input type="number" id="shop-item-price" placeholder="0" min="0">
+                        </div>
+                    </div>
+
+                    <button class="btn-primary" onclick="addShopItem()">Add to Shop</button>
+                </div>
+
+                <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
+
+                <h3 style="margin-bottom: 15px;">Shop Items</h3>
+                <div id="shop-list" class="list-container">
+                    <p style="text-align: center; color: #999; padding: 20px;">Loading items...</p>
+                </div>
+            </div>
+
+            <!-- SERVER SHOP TAB -->
+            <div id="server_shop" class="tab-content">
+                <h2>Server Shop</h2>
+                <div id="alert-server-shop" class="alert alert-slot"></div>
+
+                <div class="section">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <div class="form-label">Your Balance</div>
+                            <div id="server-shop-balance" class="server-shop-balance">Loading...</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="server-shop-sheet-select">Transfer To Owned Sheet</label>
+                            <select id="server-shop-sheet-select" onchange="updateServerShopBalanceDisplay()">
+                                <option value="">Select one of your sheets</option>
+                            </select>
+                        </div>
+                    </div>
+                    <p style="color: #666; font-size: 0.9em; margin: 4px 0 0;">
+                        Buy items from the configured shop and transfer them to one of your owned sheets.
+                    </p>
+                </div>
+
+                <div id="server-shop-grid" class="server-shop-grid">
+                    <p style="color: #999; padding: 16px; grid-column: 1 / -1; text-align:center;">Loading shop items...</p>
+                </div>
+            </div>
+
+            <!-- JOBS TAB -->
+            <div id="jobs" class="tab-content">
+                <h2>Jobs Management</h2>
+                <div id="alert-jobs" class="alert"></div>
+                <div style="display:flex; justify-content:flex-end; margin-bottom:16px;">
+                    <button class="btn-danger" onclick="resetJobs()">Reset Jobs</button>
+                </div>
+
+                <div class="section">
+                    <h3 style="margin-bottom: 15px;">Create New Job</h3>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="job-name">Job Name</label>
+                            <input type="text" id="job-name" placeholder="e.g., Blacksmith, Miner">
+                        </div>
+                        <div class="form-group">
+                            <label for="job-payment">Payment (per cooldown)</label>
+                            <input type="number" id="job-payment" placeholder="0" step="0.01">
+                        </div>
+                    </div>
+
+                    <button class="btn-primary" onclick="addJob()">Create Job</button>
+                </div>
+
+                <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
+
+                <h3 style="margin-bottom: 15px;">Active Jobs</h3>
+                <div id="jobs-list" class="list-container">
+                    <p style="text-align: center; color: #999; padding: 20px;">Loading jobs...</p>
+                </div>
+            </div>
+
+            <!-- ITEMS TAB -->
+            <div id="items" class="tab-content">
+                <h2>Items Management</h2>
+                <div id="alert-items" class="alert"></div>
+                <div style="display:flex; justify-content:flex-end; margin-bottom:16px;">
+                    <button class="btn-danger" onclick="resetItems()">Reset Items</button>
+                </div>
+
+                <div class="section">
+                    <h3 style="margin-bottom: 15px;">Create New Item</h3>
+
+                    <div class="form-group">
+                        <label for="new-item-name">Item Name</label>
+                        <input type="text" id="new-item-name" placeholder="e.g., Healing Potion">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="item-consumable">Consumable</label>
+                            <select id="item-consumable">
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="item-image">Image File</label>
+                            <input type="file" id="item-image" accept="image/*">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="item-description">Description</label>
+                        <textarea id="item-description" placeholder="Describe what this item does or is used for..."></textarea>
+                    </div>
+
+                    <button class="btn-primary" onclick="addItem()">Create Item</button>
+                </div>
+
+                <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
+
+                <h3 style="margin-bottom: 15px;">All Items</h3>
+                <div id="items-list" class="list-container">
+                    <p style="text-align: center; color: #999; padding: 20px;">Loading items...</p>
+                </div>
+            </div>
+
+            <!-- SETTINGS TAB -->
+            <div id="settings" class="tab-content">
+                <h2>System Settings</h2>
+                <div id="alert-settings" class="alert"></div>
+                <div style="display:flex; justify-content:flex-end; margin-bottom:16px;">
+                    <button class="btn-danger" onclick="resetSettings()">Reset Settings</button>
+                </div>
+
+                <div class="section">
+                    <h3 style="margin-bottom: 15px;">⏱️ Work Cooldown</h3>
+                    <p style="color: #666; font-size: 0.9em; margin-bottom: 15px;">
+                        Set how many days must pass before a character can work again. Set to 0 for no cooldown.
+                    </p>
+
+                    <div class="form-group">
+                        <label for="work-cooldown">Days</label>
+                        <input type="number" id="work-cooldown" placeholder="0" min="0">
+                    </div>
+
+                    <button class="btn-primary" onclick="saveWorkCooldown()" style="width: 50%;">Update Work Cooldown</button>
+                </div>
+
+                <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
+
+                <div class="section">
+                    <h3 style="margin-bottom: 15px;">💀 Death Cooldown</h3>
+                    <p style="color: #666; font-size: 0.9em; margin-bottom: 15px;">
+                        Set how many days before a dead character can be revived. Set to 0 for immediate revival.
+                    </p>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="death-cooldown">Days</label>
+                            <input type="number" id="death-cooldown" placeholder="0" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="death-infinite">Infinite Death</label>
+                            <select id="death-infinite">
+                                <option value="false">No</option>
+                                <option value="true">Yes</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button class="btn-primary" onclick="saveDeathSettings()" style="width: 50%;">Update Death Settings</button>
+                </div>
+
+                <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
+
+                <div class="section">
+                    <h3 style="margin-bottom: 15px;">⚔️ Combat Rules</h3>
+                    <p style="color: #666; font-size: 0.9em; margin-bottom: 15px;">
+                        Configure fight outcome weights for /fight_dynamic rules. Values must sum to 1.0.
+                    </p>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="combat-solid-hit">Solid Hit (hitchance)</label>
+                            <input type="number" id="combat-solid-hit" placeholder="0.25" min="0" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label for="combat-small-hit">Small Hit (missed1)</label>
+                            <input type="number" id="combat-small-hit" placeholder="0.25" min="0" step="0.01">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="combat-miss">Miss (missed2)</label>
+                            <input type="number" id="combat-miss" placeholder="0.25" min="0" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label for="combat-self-hit">Self Hit (missed3)</label>
+                            <input type="number" id="combat-self-hit" placeholder="0.25" min="0" step="0.01">
+                        </div>
+                    </div>
+
+                    <button class="btn-primary" onclick="saveCombatRules()" style="width: 50%;">Update Combat Rules</button>
+                </div>
+
+
+            </div>
+
+            <!-- AUDIT TAB -->
+            <div id="audit" class="tab-content">
+                <h2>Audit Log</h2>
+                <div id="alert-audit" class="alert"></div>
+
+                <div class="section">
+                    <h3 style="margin-bottom: 15px;">🧾 Audit Identity</h3>
+                    <p style="color: #666; font-size: 0.9em; margin-bottom: 15px;">
+                        Audit entries from this website use the currently logged-in Discord account automatically.
+                    </p>
+                    <div style="padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; background: #f8f9fb; color: #333; font-size: 0.92em;">
+                        Signed in as: <strong>{{ current_user.display_name or current_user.username }}</strong>
+                    </div>
+                </div>
+
+                <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
+
+                <div class="section">
+                    <h3 style="margin-bottom: 15px;">Search Logs</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="audit-search-q">Loose Search</label>
+                            <input type="text" id="audit-search-q" placeholder="Any word in actor, route, source, method, action, payload" onkeydown="if(event.key==='Enter'){loadAuditLogs();}">
+                        </div>
+                        <div class="form-group">
+                            <label for="audit-search-actor">Who (Actor)</label>
+                            <input type="text" id="audit-search-actor" placeholder="e.g., RootUser" onkeydown="if(event.key==='Enter'){loadAuditLogs();}">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="audit-search-where">Where (Route)</label>
+                            <input type="text" id="audit-search-where" placeholder="e.g., /api/users" onkeydown="if(event.key==='Enter'){loadAuditLogs();}">
+                        </div>
+                        <div class="form-group">
+                            <label for="audit-search-source">Source</label>
+                            <select id="audit-search-source" onchange="loadAuditLogs()">
+                                <option value="">All sources</option>
+                                <option value="admin_webpage">admin_webpage</option>
+                                <option value="discord_bot">discord_bot</option>
+                                <option value="system">system</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="btn-group" style="margin-top: 6px;">
+                        <button class="btn-secondary" onclick="clearAuditFilters()">Clear Filters</button>
+                        <button class="btn-primary" onclick="loadAuditLogs()">Search</button>
+                    </div>
+                </div>
+
+                <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
+
+                <div class="section">
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom: 15px;">
+                        <h3 style="margin:0;">Recent Entries (last 30 days)</h3>
+                        <button class="btn-secondary btn-tiny" onclick="loadAuditLogs()">Refresh</button>
+                    </div>
+                    <div id="audit-log-list" class="list-container">
+                        <p style="text-align: center; color: #999; padding: 20px;">Loading audit logs...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- USERS TAB -->
+            <div id="users" class="tab-content">
+                <h2>Users Overview</h2>
+                <div id="alert-users" class="alert"></div>
+
+                <!-- GRID VIEW -->
+                <div id="users-grid-view">
+                    <div class="section">
+                        <div class="users-toolbar">
+                            <div class="form-group">
+                                <label for="user-filter">Select User</label>
+                                <select id="user-filter" onchange="displayUsers(window.dashboardUsers || [])">
+                                    <option value="">All Users</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="users-list" class="users-grid">
+                            <p style="text-align: center; color: #999; padding: 20px; grid-column: 1 / -1;">Loading users...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DETAIL VIEW -->
+                <div id="users-detail-view" style="display:none;">
+                    <button class="detail-back-btn" onclick="closeUserDetail()">&#8592; Back to Users</button>
+
+                    <div id="user-profile-content">
+
+                        <div class="user-detail-header">
+                            <img id="detail-avatar" class="detail-user-avatar" src="" alt="">
+                            <div>
+                                <div id="detail-username" class="detail-user-name"></div>
+                                <div id="detail-role" class="detail-user-role"></div>
+                            </div>
+                        </div>
+
+                        <!-- Part 1: Currency & Inventory -->
+                        <div class="detail-section">
+                            <h3>Resources</h3>
+                            <div class="resource-grid">
+                                <div class="currency-box">
+                                    <div class="currency-label">Currency</div>
+                                    <div id="detail-currency" class="currency-value">—</div>
+                                    <input type="number" id="detail-currency-input" class="currency-input" step="0.01" placeholder="0.00" oninput="markUserResourcesDirty()">
+                                    <button id="user-currency-save-btn" class="btn-primary btn-tiny currency-save-btn" onclick="saveUserCurrency()">Save</button>
+                                </div>
+                                <div>
+                                    <table class="inventory-table">
+                                        <thead><tr><th>Item</th><th>Qty</th><th></th></tr></thead>
+                                        <tbody id="detail-inventory">
+                                            <tr><td colspan="3" class="inline-empty">No items</td></tr>
+                                        </tbody>
+                                    </table>
+                                    <div class="resource-actions">
+                                        <button id="user-inventory-save-btn" class="btn-primary btn-tiny inventory-save-btn" onclick="saveUserInventory()">Save Inventory</button>
+                                        <button id="user-inventory-add-btn" class="btn-secondary btn-tiny" onclick="addUserInventoryRow()">Add Item</button>
+                                        <button id="user-inventory-cancel-btn" class="btn-secondary btn-tiny" onclick="cancelUserResourceEdits()">Cancel</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Part 2 & 3: Character Sheets -->
+                        <div class="detail-section">
+                            <h3>Characters</h3>
+                            <div class="import-btn-row">
+                                <button class="btn-secondary btn-tiny" id="new-sheet-btn" onclick="createNewSheet()" disabled>New Sheet</button>
+                                <button class="btn-primary btn-tiny" id="import-sheet-btn" onclick="triggerImportSheet()" disabled>Import Sheet</button>
+                            </div>
+                            <div style="display: flex; gap: 15px; margin-bottom: 16px; flex-wrap: wrap;">
+                                <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+                                    <label for="sheet-status-filter">Filter by Status</label>
+                                    <select id="sheet-status-filter" onchange="renderCharacterCards()">
+                                        <option value="">All</option>
+                                        <option value="Approved">Approved</option>
+                                        <option value="Denied">Denied</option>
+                                        <option value="Draft">Drafts</option>
+                                        <option value="Discuss">On Discuss</option>
+                                    </select>
+                                </div>
+                                <input type="file" id="import-sheet-input" accept=".json" style="display:none;" onchange="handleImportSheetFile(event)">
+                            </div>
+                            <div id="character-cards-list" class="character-cards"></div>
+                        </div>
+                    </div>
+
+                    <div id="character-detail-panel" class="character-detail-panel" style="display:none;">
+                        <div class="character-detail-header">
+                            <div>
+                                <h3 id="character-detail-title" style="margin:0; border:none; padding:0;">Character Detail</h3>
+                                <div id="character-detail-status" class="detail-user-role"></div>
+                            </div>
+                            <button class="btn-secondary btn-tiny" onclick="closeCharacterDetail()">Close Character</button>
+                        </div>
+
+                        <div class="detail-section" style="margin-bottom: 16px;">
+                            <h3>Character Resources</h3>
+                            <div class="resource-grid">
+                                <div class="currency-box">
+                                    <div class="currency-label">Character Currency</div>
+                                    <div id="character-currency" class="currency-value">—</div>
+                                    <input type="number" id="character-currency-input" class="currency-input" step="0.01" placeholder="0.00" oninput="markCharacterResourcesDirty()">
+                                    <button id="character-currency-save-btn" class="btn-primary btn-tiny currency-save-btn" onclick="saveCharacterCurrency()">Save</button>
+                                </div>
+                                <div>
+                                    <table class="inventory-table">
+                                        <thead><tr><th>Item</th><th>Qty</th><th></th></tr></thead>
+                                        <tbody id="character-inventory">
+                                            <tr><td colspan="3" class="inline-empty">Select a character to load resources</td></tr>
+                                        </tbody>
+                                    </table>
+                                    <div class="resource-actions">
+                                        <button id="character-inventory-save-btn" class="btn-primary btn-tiny inventory-save-btn" onclick="saveCharacterInventory()">Save Inventory</button>
+                                        <button id="character-inventory-add-btn" class="btn-secondary btn-tiny" onclick="addCharacterInventoryRow()">Add Item</button>
+                                        <button id="character-inventory-cancel-btn" class="btn-secondary btn-tiny" onclick="cancelCharacterResourceEdits()">Cancel</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="detail-section" style="margin-bottom: 0;">
+                            <h3>Character Fields</h3>
+                            <table class="character-fields-table">
+                                <tbody id="character-fields-list">
+                                    <tr><td colspan="2" class="inline-empty">Select a character to view fields</td></tr>
+                                </tbody>
+                            </table>
+                            <div id="character-field-actions" style="margin-top: 12px; display: none;">
+                                <button id="save-character-fields-btn" class="btn-primary btn-tiny" onclick="saveCharacterSheetEdits()">Save Sheet Edits</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            Contact your project maintainer or deployment owner in case of bugs or errors.
+        </div>
+    </div>
+    <!-- Sheet action comment modal -->
+    <div id="sheet-action-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:#fff; border-radius:12px; padding:28px; width:420px; max-width:92vw; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
+            <h3 id="modal-title" style="margin:0 0 16px; font-size:1.1em; color:#1f2937;"></h3>
+            <div class="form-group">
+                <label for="modal-comment">Moderator Comment <span style="color:#9ca3af;font-weight:400;">(optional)</span></label>
+                <textarea id="modal-comment" rows="3" placeholder="Leave a comment for the user..."></textarea>
+            </div>
+            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:8px;">
+                <button onclick="closeSheetModal()" style="background:#f3f4f6; color:#374151; border:1px solid #d1d5db; border-radius:8px; padding:8px 18px; font-size:0.93em; cursor:pointer;">Cancel</button>
+                <button id="modal-confirm-btn" style="border-radius:8px; padding:8px 20px; font-size:0.93em; font-weight:700; color:#fff; cursor:pointer; border:none;"></button>
+            </div>
+        </div>
+    </div>
+
+    <script type="application/json" id="dashboard-permissions-data">
+    {
+        "canEditInventory": {{ dashboard_permissions.can_edit_inventory | tojson }},
+        "canEditOwnSheets": {{ dashboard_permissions.can_edit_own_sheets | tojson }},
+        "canDeleteOtherSheets": {{ dashboard_permissions.can_delete_other_sheets | tojson }},
+        "canManageServerFields": {{ dashboard_permissions.can_manage_server_fields | tojson }},
+        "canEditServerIds": {{ dashboard_permissions.can_edit_server_ids | tojson }},
+        "canChangeSheetStatus": {{ dashboard_permissions.can_change_sheet_status | tojson }}
+    }
+    </script>
+
+    <script>
+        // @ts-nocheck
+        const TAB_PATHS = {
+            overview: '/overview',
+            server: '/serverconfig',
+            server_shop: '/server-shop',
+            shop: '/shop',
+            jobs: '/jobs',
+            items: '/items',
+            settings: '/settings',
+            audit: '/audit',
+            users: '/users'
+        };
+
+        let currentDashboardTab = null;
+        let usersSyncTimer = null;
+        let usersSyncInFlight = false;
+        let _usersListenerAttached = false;
+        let dashboardItemCatalog = [];
+        let serverShopState = { items: [], sheets: [], canPurchase: false };
+        let roleWatchTimer = null;
+        let roleWatchBaseline = '';
+        const INITIAL_USER_ID = '{{ initial_user_id or "" }}' || null;
+        const INITIAL_SHEET_ID = '{{ initial_sheet_id or "" }}' || null;
+        let pendingUsersNavigation = INITIAL_USER_ID ? { userId: INITIAL_USER_ID, sheetId: INITIAL_SHEET_ID } : null;
+        const SESSION_ROLE = '{{ session_role }}';
+        roleWatchBaseline = SESSION_ROLE;
+        const DASHBOARD_PERMISSIONS = JSON.parse(
+            document.getElementById('dashboard-permissions-data').textContent
+        );
+        const currentUserId = '{{ current_user.id if current_user else "" }}';
+        const INITIAL_ACTIVE_SERVER_ID = {{ active_server_id | tojson }};
+        const INITIAL_ACTIVE_SERVER_NAME = {{ active_server_name | tojson }};
+        const INITIAL_ACTIVE_SERVER_ICON = {{ active_server_icon_url | tojson }};
+        const CSRF_TOKEN = {{ csrf_token | tojson }};
+        let selectedServerId = null;
+
+        function canEditResources() {
+            return !!DASHBOARD_PERMISSIONS.canEditInventory;
+        }
+
+        function normalizeUserId(value) {
+            return String(value || '').trim();
+        }
+
+        function sameUserId(left, right) {
+            return normalizeUserId(left) !== '' && normalizeUserId(left) === normalizeUserId(right);
+        }
+
+        function isOwnViewedUser() {
+            return !!window.currentUserDetail?.userId && sameUserId(window.currentUserDetail.userId, currentUserId);
+        }
+
+        function canEditViewedUserSheet() {
+            return !!DASHBOARD_PERMISSIONS.canEditOwnSheets && isOwnViewedUser();
+        }
+
+        function canDeleteViewedUserSheet() {
+            if (canEditViewedUserSheet()) {
+                return true;
+            }
+            return !!DASHBOARD_PERMISSIONS.canDeleteOtherSheets;
+        }
+
+        function updateImportButtonState() {
+            const importBtn = document.getElementById('import-sheet-btn');
+            const newSheetBtn = document.getElementById('new-sheet-btn');
+            const isOwn = isOwnViewedUser();
+            if (importBtn) {
+                importBtn.disabled = !isOwn;
+                importBtn.style.display = isOwn ? 'inline-block' : 'none';
+            }
+            if (newSheetBtn) {
+                newSheetBtn.disabled = !isOwn;
+                newSheetBtn.style.display = isOwn ? 'inline-block' : 'none';
+            }
+        }
+
+        function applyRoleUiRestrictions() {
+            const canEditServerIds = !!DASHBOARD_PERMISSIONS.canEditServerIds;
+            const serverResetBtn = document.getElementById('server-reset-btn');
+            const serverSaveBtn = document.getElementById('server-save-btn');
+            const serverInputs = ['admin-role', 'admin-channel', 'member-role', 'member-channel']
+                .map(id => document.getElementById(id))
+                .filter(Boolean);
+
+            if (serverResetBtn) serverResetBtn.style.display = canEditServerIds ? 'inline-block' : 'none';
+            if (serverSaveBtn) serverSaveBtn.style.display = canEditServerIds ? 'inline-block' : 'none';
+            serverInputs.forEach(input => {
+                input.readOnly = !canEditServerIds;
+                input.disabled = !canEditServerIds;
+            });
+
+            const canManageFields = !!DASHBOARD_PERMISSIONS.canManageServerFields;
+            const addFieldBtn = document.getElementById('add-field-btn');
+            const fieldNameInput = document.getElementById('field-name');
+            if (addFieldBtn) addFieldBtn.style.display = canManageFields ? 'inline-block' : 'none';
+            if (fieldNameInput) fieldNameInput.disabled = !canManageFields;
+
+            const showResourceEdit = canEditResources();
+            [
+                'detail-currency-input',
+                'user-currency-save-btn',
+                'user-inventory-save-btn',
+                'user-inventory-add-btn',
+                'user-inventory-cancel-btn',
+                'character-currency-input',
+                'character-currency-save-btn',
+                'character-inventory-save-btn',
+                'character-inventory-add-btn',
+                'character-inventory-cancel-btn'
+            ].forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.style.display = showResourceEdit ? '' : 'none';
+                el.disabled = !showResourceEdit;
+            });
+        }
+
+        async function checkRoleChangeAndReload() {
+            try {
+                const response = await fetch('/api/session-role?refresh=1', {
+                    method: 'GET',
+                    cache: 'no-store',
+                    headers: { 'Accept': 'application/json' }
+                });
+                if (!response.ok) {
+                    return;
+                }
+
+                const payload = await response.json();
+                const serverRole = String(payload?.role || '');
+                if (!serverRole) {
+                    return;
+                }
+
+                if (serverRole !== roleWatchBaseline) {
+                    window.location.reload();
+                    return;
+                }
+            } catch (error) {
+                // Ignore transient role-check errors.
+            }
+        }
+
+        function startRoleChangeWatcher() {
+            if (roleWatchTimer) {
+                return;
+            }
+            roleWatchTimer = window.setInterval(checkRoleChangeAndReload, 3000);
+
+            // Re-check immediately when the tab becomes active again.
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) {
+                    checkRoleChangeAndReload();
+                }
+            });
+        }
+
+        // Tab switching
+        function switchTab(tabName, buttonEl = null, updateUrl = true) {
+            currentDashboardTab = tabName;
+            applyRoleUiRestrictions();
+
+            // Hide all tabs
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+
+            // Remove active from all buttons
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+
+            // Mark button as active
+            const activeButton = buttonEl || document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
+            if (activeButton) {
+                activeButton.classList.add('active');
+            }
+
+            if (updateUrl) {
+                const newPath = TAB_PATHS[tabName] || '/overview';
+                if (window.location.pathname !== newPath) {
+                    history.pushState({ tab: tabName }, '', newPath);
+                }
+            }
+
+            // Load data for the tab
+            if (tabName === 'overview') loadOverview();
+            if (tabName === 'server') loadServerData();
+            if (tabName === 'server_shop') loadServerShopData();
+            if (tabName === 'shop') loadShopData();
+            if (tabName === 'jobs') loadJobsData();
+            if (tabName === 'items') loadItemsData();
+            if (tabName === 'settings') loadSettingsData();
+            if (tabName === 'audit') loadAuditData();
+            if (tabName === 'users') {
+                loadUsersData();
+                if (window.currentUserDetail?.userId && !window.userResourceDraft?.dirty) {
+                    refreshCurrentUserDetail(true);
+                }
+            }
+
+            if (tabName === 'users') {
+                startUsersAutoSync();
+            } else {
+                stopUsersAutoSync();
+            }
+        }
+
+        // Alert helper
+        function showAlert(tabId, message, type = 'success') {
+            const alertEl = document.getElementById(`alert-${tabId}`);
+            const hasSlot = alertEl.classList.contains('alert-slot');
+            alertEl.textContent = message;
+            alertEl.className = hasSlot ? `alert alert-slot show alert-${type}` : `alert show alert-${type}`;
+            setTimeout(() => alertEl.classList.remove('show'), 5000);
+        }
+
+        // API helper
+        async function apiCall(method, endpoint, data = null) {
+            try {
+                const upperMethod = String(method || '').toUpperCase();
+                const options = {
+                    method,
+                    headers: { 'Content-Type': 'application/json' }
+                };
+                if (upperMethod === 'GET') {
+                    options.cache = 'no-store';
+                }
+                if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(upperMethod)) {
+                    options.headers['X-Audit-Source'] = 'admin_webpage';
+                    options.headers['X-CSRF-Token'] = CSRF_TOKEN;
+                }
+                if (data) options.body = JSON.stringify(data);
+
+                const response = await fetch(`/api${endpoint}`, options);
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'API error');
+                }
+                return result;
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+
+        function _formatAuditTime(isoValue) {
+            try {
+                return new Date(isoValue).toLocaleString();
+            } catch (e) {
+                return isoValue || 'Unknown time';
+            }
+        }
+
+        function parseAuditDetails(rawDetails) {
+            if (rawDetails == null) return null;
+            if (typeof rawDetails === 'object') return rawDetails;
+            try {
+                return JSON.parse(rawDetails);
+            } catch (e) {
+                return rawDetails;
+            }
+        }
+
+        function auditUsername(actorValue) {
+            const actor = String(actorValue || 'Unknown').trim();
+            const idx = actor.lastIndexOf(' (');
+            if (idx > 0) return actor.slice(0, idx).trim();
+            return actor;
+        }
+
+        function auditSourceLabel(sourceValue) {
+            if (sourceValue === 'discord_bot') return 'Bot Command';
+            if (sourceValue === 'admin_webpage') return 'Website';
+            return sourceValue || 'Unknown';
+        }
+
+        function stringifyAuditValue(value) {
+            if (value == null) return 'None';
+            if (typeof value === 'string') return value || 'None';
+            try {
+                return JSON.stringify(value, null, 2);
+            } catch (e) {
+                return String(value);
+            }
+        }
+
+        function flattenAuditOptionLines(options, prefix = '') {
+            const lines = [];
+            for (const option of Array.isArray(options) ? options : []) {
+                if (!option || typeof option !== 'object') continue;
+                const name = String(option.name || '').trim();
+                const path = [prefix, name].filter(Boolean).join(' ').trim();
+                if (Object.prototype.hasOwnProperty.call(option, 'value')) {
+                    lines.push(`${path || 'value'}: ${formatAuditScalar(option.value)}`);
+                    continue;
+                }
+                lines.push(...flattenAuditOptionLines(option.options || [], path));
+            }
+            return lines;
+        }
+
+        function formatAuditScalar(value) {
+            if (value == null || value === '') return 'None';
+            if (typeof value === 'string') return value;
+            if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+            try {
+                return JSON.stringify(value);
+            } catch (e) {
+                return String(value);
+            }
+        }
+
+        function formatAuditBlock(value) {
+            if (value == null) return 'None';
+            if (typeof value === 'string') return value || 'None';
+            if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+
+            if (Array.isArray(value)) {
+                const optionLines = flattenAuditOptionLines(value);
+                if (optionLines.length) return optionLines.join('\n');
+                if (!value.length) return 'None';
+                return value.map((item, index) => `${index + 1}. ${formatAuditScalar(item)}`).join('\n');
+            }
+
+            if (typeof value === 'object') {
+                const entries = Object.entries(value);
+                if (!entries.length) return 'None';
+                return entries.map(([key, entryValue]) => {
+                    if (entryValue && typeof entryValue === 'object') {
+                        const nested = formatAuditBlock(entryValue);
+                        if (!nested.includes('\n')) {
+                            return `${key}: ${nested}`;
+                        }
+                        return `${key}:\n${nested.split('\n').map(line => `  ${line}`).join('\n')}`;
+                    }
+                    return `${key}: ${formatAuditScalar(entryValue)}`;
+                }).join('\n');
+            }
+
+            return stringifyAuditValue(value);
+        }
+
+        function getAuditColumnData(row) {
+            const details = parseAuditDetails(row.request_details);
+            const isObject = details && typeof details === 'object' && !Array.isArray(details);
+
+            const commandUsed = row.source === 'discord_bot'
+                ? (isObject ? details.command : null) || row.action || row.route || 'None'
+                : (row.action || row.route || 'None');
+
+            const channelName = row.source === 'discord_bot'
+                ? ((isObject ? details.channel_name : null) || 'None')
+                : 'None';
+
+            const fullCommand = row.source === 'discord_bot'
+                ? ((isObject ? details.full_command : null) || commandUsed || 'None')
+                : `${row.method || ''} ${row.route || ''}`.trim() || 'None';
+
+            const inputData = isObject
+                ? (details.input_data ?? details.options ?? details)
+                : (details ?? 'None');
+
+            const previousData = isObject
+                ? (details.previous_data ?? details.previous ?? details.before ?? 'None')
+                : 'None';
+
+            const nextData = isObject
+                ? (details.next_data ?? details.next ?? details.after ?? 'None')
+                : 'None';
+
+            return {
+                dateTime: _formatAuditTime(row.created_at),
+                username: auditUsername(row.actor),
+                sourceLabel: auditSourceLabel(row.source),
+                commandUsed,
+                channelName,
+                fullCommand,
+                inputData: formatAuditBlock(inputData),
+                previousData: formatAuditBlock(previousData),
+                nextData: formatAuditBlock(nextData),
+            };
+        }
+
+        function getAuditSearchParams() {
+            const q = document.getElementById('audit-search-q')?.value?.trim() || '';
+            const actor = document.getElementById('audit-search-actor')?.value?.trim() || '';
+            const where = document.getElementById('audit-search-where')?.value?.trim() || '';
+            const source = document.getElementById('audit-search-source')?.value?.trim() || '';
+
+            const params = new URLSearchParams();
+            params.set('limit', '100');
+            if (q) params.set('q', q);
+            if (actor) params.set('actor', actor);
+            if (where) params.set('where', where);
+            if (source) params.set('source', source);
+            return params.toString();
+        }
+
+        function clearAuditFilters() {
+            const q = document.getElementById('audit-search-q');
+            const actor = document.getElementById('audit-search-actor');
+            const where = document.getElementById('audit-search-where');
+            const source = document.getElementById('audit-search-source');
+            if (q) q.value = '';
+            if (actor) actor.value = '';
+            if (where) where.value = '';
+            if (source) source.value = '';
+            loadAuditLogs();
+        }
+
+        async function loadAuditData() {
+            await loadAuditLogs();
+        }
+
+        async function loadAuditLogs() {
+            try {
+                const rows = await apiCall('GET', `/audit-logs?${getAuditSearchParams()}`);
+                const list = document.getElementById('audit-log-list');
+
+                if (!rows || !rows.length) {
+                    list.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No audit entries yet</p>';
+                    return;
+                }
+
+                const bodyRows = rows.map(row => {
+                    const view = getAuditColumnData(row);
+                    const rowClass = Number(row.id || 0) % 2 === 0 ? 'audit-entry-alt' : '';
+                    return `
+                        <tr class="audit-entry-start ${rowClass}">
+                            <td>
+                                <div class="audit-cell-label">Date and Time</div>
+                                <div class="audit-cell-value">${escHtml(view.dateTime)}</div>
+                            </td>
+                            <td>
+                                <div class="audit-cell-label">Username</div>
+                                <div class="audit-cell-value">${escHtml(view.username)}</div>
+                            </td>
+                            <td>
+                                <div class="audit-cell-label">Botcommand/Website based</div>
+                                <span class="audit-pill">${escHtml(view.sourceLabel)}</span>
+                            </td>
+                        </tr>
+                        <tr class="${rowClass}">
+                            <td colspan="2">
+                                <div class="audit-cell-label">Command/Button used</div>
+                                <div class="audit-cell-value">${escHtml(view.commandUsed)}</div>
+                            </td>
+                            <td>
+                                <div class="audit-cell-label">Channel name</div>
+                                <div class="audit-cell-value">${escHtml(view.channelName || 'None')}</div>
+                            </td>
+                        </tr>
+                        <tr class="${rowClass}">
+                            <td colspan="3">
+                                <div class="audit-cell-label">Full command</div>
+                                <code class="audit-code">${escHtml(view.fullCommand)}</code>
+                            </td>
+                        </tr>
+                        <tr class="${rowClass}">
+                            <td colspan="3">
+                                <div class="audit-cell-label">Input data</div>
+                                <code class="audit-code">${escHtml(view.inputData)}</code>
+                            </td>
+                        </tr>
+                        <tr class="${rowClass}">
+                            <td colspan="3">
+                                <div class="audit-cell-label">Previous data</div>
+                                <code class="audit-code">${escHtml(view.previousData)}</code>
+                            </td>
+                        </tr>
+                        <tr class="${rowClass}">
+                            <td colspan="3">
+                                <div class="audit-cell-label">Next data</div>
+                                <code class="audit-code">${escHtml(view.nextData)}</code>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                list.innerHTML = `
+                    <div class="audit-table-wrap">
+                        <table class="audit-table">
+                            <thead>
+                                <tr>
+                                    <th colspan="3">Recent Entries (last 30 days)</th>
+                                </tr>
+                            </thead>
+                            <tbody>${bodyRows}</tbody>
+                        </table>
+                    </div>
+                `;
+            } catch (error) {
+                showAlert('audit', 'Failed to load audit logs: ' + error.message, 'error');
+            }
+        }
+
+        async function loadDashboardItemCatalog(force = false) {
+            if (!force && dashboardItemCatalog.length) {
+                return dashboardItemCatalog;
+            }
+
+            const items = await apiCall('GET', '/items');
+            dashboardItemCatalog = (items || [])
+                .map(item => String(item.name || '').trim())
+                .filter(Boolean)
+                .sort((left, right) => left.localeCompare(right));
+            return dashboardItemCatalog;
+        }
+
+        // ===== OVERVIEW =====
+        async function loadOverview() {
+            try {
+                const shop = await apiCall('GET', '/shop');
+                const jobs = await apiCall('GET', '/jobs');
+                const items = await apiCall('GET', '/items');
+                document.getElementById('stat-shop-items').textContent = shop.length;
+                document.getElementById('stat-jobs').textContent = jobs.length;
+                document.getElementById('stat-items').textContent = items.length;
+            } catch (error) {
+                showAlert('overview', 'Failed to load overview: ' + error.message, 'error');
+            }
+        }
+
+        // ===== SERVER SHOP =====
+        function formatServerShopCurrency(value) {
+            const numeric = Number.parseFloat(value || 0) || 0;
+            return numeric.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function getSelectedServerShopSheet() {
+            const sheetSelect = document.getElementById('server-shop-sheet-select');
+            const selectedSheetId = String(sheetSelect?.value || '').trim();
+            if (!selectedSheetId || selectedSheetId === '__account__') {
+                return {
+                    isAccount: true,
+                    sheet_id: '',
+                    sheet_name: 'Account',
+                    currency: Number.parseFloat(serverShopState.accountCurrency || 0) || 0
+                };
+            }
+            return (serverShopState.sheets || []).find(sheet => String(sheet.sheet_id || '') === selectedSheetId) || null;
+        }
+
+        function updateServerShopBalanceDisplay() {
+            const balanceEl = document.getElementById('server-shop-balance');
+            if (!balanceEl) return;
+            const selectedSheet = getSelectedServerShopSheet();
+            if (!selectedSheet) {
+                balanceEl.textContent = 'Select a sheet to view balance';
+                return;
+            }
+            if (selectedSheet.isAccount) {
+                balanceEl.textContent = `${formatServerShopCurrency(selectedSheet.currency)} (Account)`;
+                return;
+            }
+            balanceEl.textContent = `${formatServerShopCurrency(selectedSheet.currency)} (${selectedSheet.sheet_name})`;
+        }
+
+        function applyServerShopCurrencyUpdate(result, selectedScope) {
+            const nextCurrency = Number.parseFloat(result?.currency ?? result?.sheet_currency);
+            if (!Number.isFinite(nextCurrency)) {
+                return;
+            }
+
+            const effectiveScope = String(selectedScope || '').trim() || '__account__';
+            if (effectiveScope === '__account__' || String(result?.scope || '') === 'account') {
+                serverShopState.accountCurrency = nextCurrency;
+                return;
+            }
+
+            const targetSheetId = String(result?.sheet_id || effectiveScope).trim();
+            if (!targetSheetId) {
+                return;
+            }
+
+            const targetSheet = (serverShopState.sheets || []).find(
+                sheet => String(sheet.sheet_id || '') === targetSheetId
+            );
+            if (targetSheet) {
+                targetSheet.currency = nextCurrency;
+            }
+        }
+
+        function renderServerShopGrid() {
+            const grid = document.getElementById('server-shop-grid');
+            const items = serverShopState.items || [];
+
+            if (!items.length) {
+                grid.innerHTML = '<p style="color:#64748b; padding:16px; grid-column:1 / -1; text-align:center;">No items are configured in the shop yet.</p>';
+                return;
+            }
+
+            grid.innerHTML = items.map((item, index) => {
+                const imageHtml = item.image_url
+                    ? `<img src="${escHtml(item.image_url)}" alt="${escHtml(item.item_name)}" onerror="this.style.display='none'; this.parentElement.querySelector('.server-shop-img-fallback').style.display='flex';">`
+                    : '';
+                const fallbackVisible = item.image_url ? 'display:none;' : '';
+                const fallback = `<div class="server-shop-img-fallback" style="${fallbackVisible} width:100%; height:100%; align-items:center; justify-content:center; font-size:1.8em; color:#64748b;">📦</div>`;
+                return `
+                    <div class="server-shop-card">
+                        <div class="server-shop-image-wrap">${imageHtml}${fallback}</div>
+                        <div class="server-shop-name">${escHtml(item.item_name)}</div>
+                        <div class="server-shop-description">${escHtml(item.description || 'No description')}</div>
+                        <div class="server-shop-meta">
+                            <span>Price: <strong>${escHtml(String(item.price))}</strong></span>
+                            <input id="server-shop-qty-${index}" class="server-shop-qty" type="number" min="1" step="1" value="1">
+                        </div>
+                        <div class="server-shop-actions">
+                            <button class="btn-primary server-shop-buy-btn" onclick='buyServerShopItem(${JSON.stringify(item.item_name)}, ${index})'>Buy</button>
+                            <button class="btn-secondary server-shop-buy-btn" onclick='sellServerShopItem(${JSON.stringify(item.item_name)}, ${index})'>Sell</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function loadServerShopData() {
+            try {
+                const data = await apiCall('GET', '/server-shop/catalog');
+                serverShopState = {
+                    items: Array.isArray(data?.items) ? data.items : [],
+                    sheets: Array.isArray(data?.sheets) ? data.sheets : [],
+                    accountCurrency: Number.parseFloat(data?.account_currency || 0) || 0,
+                    canPurchase: !!data?.can_purchase
+                };
+
+                const sheetSelect = document.getElementById('server-shop-sheet-select');
+                if (sheetSelect) {
+                    const previous = sheetSelect.value;
+                    sheetSelect.innerHTML = '<option value="__account__">Account (no sheet)</option>';
+                    (serverShopState.sheets || []).forEach(sheet => {
+                        const option = document.createElement('option');
+                        option.value = sheet.sheet_id;
+                        option.textContent = `${sheet.sheet_name} (${sheet.sheet_id})`;
+                        sheetSelect.appendChild(option);
+                    });
+                    if (previous === '__account__') {
+                        sheetSelect.value = '__account__';
+                    } else if (serverShopState.sheets.some(sheet => sheet.sheet_id === previous)) {
+                        sheetSelect.value = previous;
+                    } else {
+                        sheetSelect.value = '__account__';
+                    }
+                }
+
+                updateServerShopBalanceDisplay();
+                renderServerShopGrid();
+            } catch (error) {
+                showAlert('server-shop', 'Failed to load server shop: ' + error.message, 'error');
+                const grid = document.getElementById('server-shop-grid');
+                if (grid) {
+                    grid.innerHTML = '<p style="color:#64748b; padding:16px; grid-column:1 / -1; text-align:center;">Unable to load shop right now.</p>';
+                }
+            }
+        }
+
+        async function buyServerShopItem(itemName, index) {
+            const qtyInput = document.getElementById(`server-shop-qty-${index}`);
+            const sheetSelect = document.getElementById('server-shop-sheet-select');
+            const selectedScope = String(sheetSelect?.value || '').trim();
+            const sheetId = selectedScope === '__account__' ? '' : selectedScope;
+            const quantity = Number.parseInt(qtyInput?.value || '0', 10) || 0;
+
+            if (quantity <= 0) {
+                showAlert('server-shop', 'Quantity must be at least 1.', 'error');
+                return;
+            }
+
+            try {
+                const result = await apiCall('POST', '/server-shop/purchase', {
+                    sheet_id: sheetId,
+                    item_name: itemName,
+                    quantity
+                });
+                applyServerShopCurrencyUpdate(result, selectedScope);
+                updateServerShopBalanceDisplay();
+                showAlert('server-shop', result.message || 'Purchase successful.', 'success');
+                loadServerShopData();
+            } catch (error) {
+                showAlert('server-shop', 'Purchase failed: ' + error.message, 'error');
+            }
+        }
+
+        async function sellServerShopItem(itemName, index) {
+            const qtyInput = document.getElementById(`server-shop-qty-${index}`);
+            const sheetSelect = document.getElementById('server-shop-sheet-select');
+            const selectedScope = String(sheetSelect?.value || '').trim();
+            const sheetId = selectedScope === '__account__' ? '' : selectedScope;
+            const quantity = Number.parseInt(qtyInput?.value || '0', 10) || 0;
+
+            if (quantity <= 0) {
+                showAlert('server-shop', 'Quantity must be at least 1.', 'error');
+                return;
+            }
+
+            try {
+                const result = await apiCall('POST', '/server-shop/sell', {
+                    sheet_id: sheetId,
+                    item_name: itemName,
+                    quantity
+                });
+                applyServerShopCurrencyUpdate(result, selectedScope);
+                updateServerShopBalanceDisplay();
+                showAlert('server-shop', result.message || 'Sell successful.', 'success');
+                loadServerShopData();
+            } catch (error) {
+                showAlert('server-shop', 'Sell failed: ' + error.message, 'error');
+            }
+        }
+
+        // ===== SERVER CONFIG =====
+        selectedServerId = INITIAL_ACTIVE_SERVER_ID || null;
+
+        function updateActiveServerLabel(serverOrName, iconUrl) {
+            const label = document.getElementById('active-server-label');
+            const img = document.getElementById('active-server-guild-icon');
+            const fallback = document.getElementById('active-server-guild-icon-fallback');
+            if (!label) return;
+            if (!serverOrName) {
+                label.textContent = 'Not selected';
+                if (img) img.style.display = 'none';
+                if (fallback) fallback.style.display = 'inline';
+                return;
+            }
+            const resolvedIconUrl = iconUrl !== undefined ? iconUrl : (typeof serverOrName === 'object' ? serverOrName?.icon_url : null);
+            if (img && fallback) {
+                if (resolvedIconUrl) {
+                    img.src = resolvedIconUrl;
+                    img.style.display = 'inline';
+                    fallback.style.display = 'none';
+                } else {
+                    img.style.display = 'none';
+                    fallback.style.display = 'inline';
+                }
+            }
+            if (typeof serverOrName === 'string') {
+                label.textContent = serverOrName;
+                return;
+            }
+            label.textContent = serverOrName.guild_name || `Guild ${serverOrName.guild_id || ''}`.trim();
+        }
+
+        function getServerDisplayName(server) {
+            if (server?.guild_name) {
+                return `${server.guild_name} (${server.guild_id})`;
+            }
+            return `Guild ${server?.guild_id || ''}`;
+        }
+
+        function setSheetFieldsVisibility(isVisible) {
+            const section = document.getElementById('sheet-fields-section');
+            if (section) {
+                section.style.display = isVisible ? 'block' : 'none';
+            }
+        }
+
+        function populateServerForm(server) {
+            document.getElementById('admin-role').value = server?.admin_role_id || '';
+            document.getElementById('admin-channel').value = server?.admin_channel_id || '';
+            document.getElementById('member-role').value = server?.member_role_id || '';
+            document.getElementById('member-channel').value = server?.member_channel_id || '';
+        }
+
+        async function selectServerConfig(serverId) {
+            if (!serverId) {
+                selectedServerId = null;
+                populateServerForm(null);
+                updateActiveServerLabel(null, null);
+                document.getElementById('fields-list').innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">Select a server on the homepage first</p>';
+                setSheetFieldsVisibility(false);
+                return;
+            }
+            selectedServerId = serverId;
+            try {
+                const server = await apiCall('GET', `/servers/${serverId}`);
+                populateServerForm(server || { guild_id: serverId });
+                const fields = await apiCall('GET', `/servers/${serverId}/fields`);
+                displayFields(fields, serverId);
+                setSheetFieldsVisibility(true);
+            } catch (error) {
+                setSheetFieldsVisibility(false);
+                showAlert('server', 'Failed to load server config: ' + error.message, 'error');
+            }
+        }
+
+        function handleSheetServerSelection(serverId) {
+            selectServerConfig(serverId);
+        }
+
+        async function loadServerData() {
+            try {
+                if (!selectedServerId) {
+                    populateServerForm(null);
+                    document.getElementById('fields-list').innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">Select a server on the homepage first</p>';
+                    setSheetFieldsVisibility(false);
+                    return;
+                }
+
+                await selectServerConfig(selectedServerId);
+            } catch (error) {
+                setSheetFieldsVisibility(false);
+                showAlert('server', 'Failed to load server data: ' + error.message, 'error');
+            }
+        }
+
+        async function saveServer() {
+            if (!DASHBOARD_PERMISSIONS.canEditServerIds) {
+                showAlert('server', 'Admins cannot change server IDs, role IDs, or channel IDs.', 'error');
+                return;
+            }
+            try {
+                const serverId = String(selectedServerId || '').trim();
+                if (!serverId) {
+                    showAlert('server', 'Select a server on the homepage first.', 'error');
+                    return;
+                }
+
+                const data = {
+                    admin_role_id: document.getElementById('admin-role').value.trim() || null,
+                    admin_channel_id: document.getElementById('admin-channel').value.trim() || null,
+                    member_role_id: document.getElementById('member-role').value.trim() || null,
+                    member_channel_id: document.getElementById('member-channel').value.trim() || null
+                };
+
+                await apiCall('POST', `/servers/${serverId}`, data);
+                selectedServerId = serverId;
+                showAlert('server', 'Server configuration saved!', 'success');
+                loadServerData();
+            } catch (error) {
+                showAlert('server', 'Error: ' + error.message, 'error');
+            }
+        }
+
+        function displayFields(fields, serverId) {
+            const list = document.getElementById('fields-list');
+            if (fields.length === 0) {
+                list.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No custom fields yet</p>';
+                return;
+            }
+
+            list.innerHTML = fields.map(field => `
+                <div class="list-item">
+                    <div class="list-item-info">
+                        <div class="list-item-title">${field}</div>
+                        <div class="list-item-detail">${field.toLowerCase() === 'status' || field.toLowerCase() === 'name' ? 'Permanent field' : 'Custom field'}</div>
+                    </div>
+                    ${field.toLowerCase() !== 'status' && field.toLowerCase() !== 'name' ?
+                        `<button class="btn-danger" onclick='deleteField(${JSON.stringify(field)}, ${JSON.stringify(serverId)})'>Remove</button>` : ''}
+                </div>
+            `).join('');
+        }
+
+        async function addField() {
+            if (!DASHBOARD_PERMISSIONS.canManageServerFields) {
+                showAlert('server', 'Only admins can add fields.', 'error');
+                return;
+            }
+            try {
+                const serverId = String(selectedServerId || '').trim();
+                const fieldName = document.getElementById('field-name').value.trim();
+
+                if (!serverId) {
+                    showAlert('server', 'Select a server on the homepage first.', 'error');
+                    return;
+                }
+                if (!fieldName) {
+                    showAlert('server', 'Please enter a field name', 'error');
+                    return;
+                }
+
+                await apiCall('POST', `/servers/${serverId}/fields`, { field_name: fieldName });
+                showAlert('server', `Field "${fieldName}" added!`, 'success');
+                document.getElementById('field-name').value = '';
+                loadServerData();
+            } catch (error) {
+                showAlert('server', 'Error: ' + error.message, 'error');
+            }
+        }
+
+        async function deleteField(fieldName, serverId) {
+            if (!DASHBOARD_PERMISSIONS.canManageServerFields) {
+                showAlert('server', 'Only admins can remove fields.', 'error');
+                return;
+            }
+            if (!confirm(`Delete field "${fieldName}"?`)) return;
+            try {
+                await apiCall('DELETE', `/servers/${serverId}/fields/${encodeURIComponent(fieldName)}`);
+                showAlert('server', `Field "${fieldName}" removed!`, 'success');
+                loadServerData();
+            } catch (error) {
+                showAlert('server', 'Error: ' + error.message, 'error');
+            }
+        }
+
+        async function removeServerConfig(serverId) {
+            if (!DASHBOARD_PERMISSIONS.canEditServerIds) {
+                showAlert('server', 'Admins cannot change server IDs, role IDs, or channel IDs.', 'error');
+                return;
+            }
+            if (!confirm(`Remove saved server configuration for ${serverId}?`)) return;
+            try {
+                await apiCall('DELETE', `/servers/${serverId}`);
+                showAlert('server', `Server configuration ${serverId} removed!`, 'success');
+                loadServerData();
+                loadOverview();
+            } catch (error) {
+                showAlert('server', 'Error: ' + error.message, 'error');
+            }
+        }
+
+        async function resetServerConfig() {
+            if (!DASHBOARD_PERMISSIONS.canEditServerIds) {
+                showAlert('server', 'Admins cannot change server IDs, role IDs, or channel IDs.', 'error');
+                return;
+            }
+            const serverId = String(selectedServerId || '').trim();
+            if (!serverId) {
+                showAlert('server', 'Select a server on the homepage first.', 'error');
+                return;
+            }
+            if (!confirm(`Reset configuration and sheet fields for ${serverId}?`)) return;
+            try {
+                await apiCall('DELETE', `/servers/${serverId}`);
+                populateServerForm({ guild_id: serverId });
+                document.getElementById('fields-list').innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No custom fields yet</p>';
+                setSheetFieldsVisibility(true);
+                showAlert('server', `Configuration for ${serverId} was removed.`, 'success');
+                loadServerData();
+                loadOverview();
+            } catch (error) {
+                showAlert('server', 'Error: ' + error.message, 'error');
+            }
+        }
+
+        // ===== SHOP =====
+        async function loadShopData() {
+            try {
+                // Load items for dropdown
+                const items = await loadDashboardItemCatalog(true);
+                const select = document.getElementById('shop-item-select');
+                select.innerHTML = '<option value="">-- Choose an item --</option>';
+                items.forEach(itemName => {
+                    const option = document.createElement('option');
+                    option.value = itemName;
+                    option.textContent = itemName;
+                    select.appendChild(option);
+                });
+
+                // Load shop items
+                const shopItems = await apiCall('GET', '/shop');
+                displayShopItems(shopItems);
+            } catch (error) {
+                showAlert('shop', 'Failed to load shop: ' + error.message, 'error');
+            }
+        }
+
+        function displayShopItems(items) {
+            const list = document.getElementById('shop-list');
+            if (items.length === 0) {
+                list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🏪</div><p>No items in shop yet</p></div>';
+                return;
+            }
+
+            list.innerHTML = items.map(item => `
+                <div class="list-item" style="flex-wrap: wrap; gap: 10px; align-items: flex-start;">
+                    <div style="min-width: 80px; width: 80px; height: 80px; background: #f0f0f0; border-radius: 5px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; position: relative;">
+                        <img src="/api/items/${encodeURIComponent(item.item_name)}/image" alt="${item.item_name}" class="shop-item-thumb" style="width: 100%; height: 100%; object-fit: cover;">
+                        <div class="shop-item-thumb-placeholder">📦</div>
+                    </div>
+                    <div class="list-item-info" style="flex: 1; min-width: 200px;">
+                        <div class="list-item-title">${item.item_name}</div>
+                        <div class="list-item-detail">💰 Price: ${item.price}</div>
+                    </div>
+                    <button class="btn-danger" onclick='deleteShopItem(${JSON.stringify(item.item_name)})'>Remove</button>
+                </div>
+            `).join('');
+
+            // Handle image load/error
+            document.querySelectorAll('.shop-item-thumb').forEach(img => {
+                img.onload = () => {
+                    img.nextElementSibling.style.display = 'none';
+                };
+                img.onerror = () => {
+                    img.style.display = 'none';
+                    img.nextElementSibling.style.display = 'flex';
+                };
+            });
+        }
+
+        async function addShopItem() {
+            try {
+                const itemName = document.getElementById('shop-item-select').value.trim();
+                const price = parseInt(document.getElementById('shop-item-price').value);
+
+                if (!itemName) {
+                    showAlert('shop', 'Please select an item', 'error');
+                    return;
+                }
+                if (isNaN(price) || price < 0) {
+                    showAlert('shop', 'Please enter valid price', 'error');
+                    return;
+                }
+
+                await apiCall('POST', '/shop', { item_name: itemName, price });
+                showAlert('shop', `"${itemName}" added to shop!`, 'success');
+                document.getElementById('shop-item-select').value = '';
+                document.getElementById('shop-item-price').value = '';
+                loadShopData();
+            } catch (error) {
+                showAlert('shop', 'Error: ' + error.message, 'error');
+            }
+        }
+
+        async function deleteShopItem(itemName) {
+            if (!confirm(`Delete "${itemName}" from shop?`)) return;
+            try {
+                await apiCall('DELETE', `/shop/${encodeURIComponent(itemName)}`);
+                showAlert('shop', `"${itemName}" removed!`, 'success');
+                loadShopData();
+            } catch (error) {
+                showAlert('shop', 'Error: ' + error.message, 'error');
+            }
+        }
+
+        async function resetShop() {
+            if (!confirm('Reset Shop and remove all shop entries?')) return;
+            try {
+                await apiCall('DELETE', '/shop');
+                document.getElementById('shop-item-select').value = '';
+                document.getElementById('shop-item-price').value = '';
+                showAlert('shop', 'All shop entries were removed.', 'success');
+                loadShopData();
+                loadOverview();
+            } catch (error) {
+                showAlert('shop', 'Error: ' + error.message, 'error');
+            }
+        }
+
+        // ===== JOBS =====
+        async function loadJobsData() {
+            try {
+                const jobs = await apiCall('GET', '/jobs');
+                displayJobs(jobs);
+            } catch (error) {
+                showAlert('jobs', 'Failed to load jobs: ' + error.message, 'error');
+            }
+        }
+
+        function displayJobs(jobs) {
+            const list = document.getElementById('jobs-list');
+            if (jobs.length === 0) {
+                list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💼</div><p>No jobs created yet</p></div>';
+                return;
+            }
+
+            list.innerHTML = jobs.map(job => `
+                <div class="list-item">
+                    <div class="list-item-info">
+                        <div class="list-item-title">${job.job_name}</div>
+                        <div class="list-item-detail">💵 Payment: ${parseFloat(job.payment).toFixed(2)}</div>
+                    </div>
+                    <button class="btn-danger" onclick='deleteJob(${JSON.stringify(job.job_name)})'>Remove</button>
+                </div>
+            `).join('');
+        }
+
+        async function addJob() {
+            try {
+                const name = document.getElementById('job-name').value.trim();
+                const payment = parseFloat(document.getElementById('job-payment').value);
+
+                if (!name) {
+                    showAlert('jobs', 'Please enter job name', 'error');
+                    return;
+                }
+                if (isNaN(payment) || payment < 0) {
+                    showAlert('jobs', 'Please enter valid payment', 'error');
+                    return;
+                }
+
+                await apiCall('POST', '/jobs', { job_name: name, payment });
+                showAlert('jobs', `Job "${name}" created!`, 'success');
+                document.getElementById('job-name').value = '';
+                document.getElementById('job-payment').value = '';
+                loadJobsData();
+            } catch (error) {
+                showAlert('jobs', 'Error: ' + error.message, 'error');
+            }
+        }
+
+        async function deleteJob(jobName) {
+            if (!confirm(`Delete job "${jobName}"?`)) return;
+            try {
+                await apiCall('DELETE', `/jobs/${encodeURIComponent(jobName)}`);
+                showAlert('jobs', `Job "${jobName}" removed!`, 'success');
+                loadJobsData();
+            } catch (error) {
+                showAlert('jobs', 'Error: ' + error.message, 'error');
+            }
+        }
+
+        async function resetJobs() {
+            if (!confirm('Reset Jobs and remove all job entries?')) return;
+            try {
+                await apiCall('DELETE', '/jobs');
+                document.getElementById('job-name').value = '';
+                document.getElementById('job-payment').value = '';
+                showAlert('jobs', 'All job entries were removed.', 'success');
+                loadJobsData();
+                loadOverview();
+            } catch (error) {
+                showAlert('jobs', 'Error: ' + error.message, 'error');
+            }
+        }
+
+        // ===== ITEMS =====
+        async function loadItemsData() {
+            try {
+                const items = await apiCall('GET', '/items');
+                displayItems(items);
+            } catch (error) {
+                showAlert('items', 'Failed to load items: ' + error.message, 'error');
+            }
+        }
+
+        function displayItems(items) {
+            const list = document.getElementById('items-list');
+            if (items.length === 0) {
+                list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🎁</div><p>No items created yet</p></div>';
+                return;
+            }
+
+            list.innerHTML = items.map(item => `
+                <div class="list-item" style="flex-wrap: wrap; gap: 10px; align-items: flex-start;">
+                    <div style="min-width: 80px; width: 80px; height: 80px; background: #f0f0f0; border-radius: 5px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
+                        ${item.image ? `<img src="/api/items/${encodeURIComponent(item.name)}/image" alt="${item.name}" style="width: 100%; height: 100%; object-fit: cover;">` : '<div style="font-size: 30px;">📦</div>'}
+                    </div>
+                    <div class="list-item-info" style="flex: 1; min-width: 200px;">
+                        <div class="list-item-title">${item.name}</div>
+                        <div class="list-item-detail">
+                            Consumable: <strong>${item.consumable}</strong> | Image: ${item.image ? '✓' : 'None'}
+                        </div>
+                        <div class="list-item-detail" style="color: #888; margin-top: 5px;">
+                            ${item.description || 'No description'}
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn-secondary" style="padding: 6px 12px; font-size: 0.85em;" onclick='uploadItemImage(${JSON.stringify(item.name)})'>Upload Image</button>
+                        <button class="btn-danger" onclick='deleteItem(${JSON.stringify(item.name)})'>Remove</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function addItem() {
+            try {
+                const name = document.getElementById('new-item-name').value.trim();
+                const consumable = document.getElementById('item-consumable').value;
+                const description = document.getElementById('item-description').value.trim();
+                const imageFile = document.getElementById('item-image').files[0];
+
+                if (!name) {
+                    showAlert('items', 'Please enter item name', 'error');
+                    return;
+                }
+
+                // First create the item
+                await apiCall('POST', '/items', { name, consumable, description });
+                showAlert('items', `"${name}" created!`, 'success');
+
+                // Then upload image if provided
+                if (imageFile) {
+                    const formData = new FormData();
+                    formData.append('file', imageFile);
+                    try {
+                        const response = await fetch(`/api/items/${encodeURIComponent(name)}/image`, {
+                            method: 'POST',
+                            headers: { 'X-CSRF-Token': CSRF_TOKEN },
+                            body: formData
+                        });
+                        const data = await response.json();
+                        if (data.status === 'success') {
+                            showAlert('items', 'Image uploaded!', 'success');
+                        }
+                    } catch (imgError) {
+                        console.warn('Image upload failed (non-fatal):', imgError);
+                    }
+                }
+
+                document.getElementById('new-item-name').value = '';
+                document.getElementById('item-consumable').value = 'No';
+                document.getElementById('item-description').value = '';
+                document.getElementById('item-image').value = '';
+                loadItemsData();
+            } catch (error) {
+                showAlert('items', 'Error: ' + error.message, 'error');
+            }
+        }
+
+        function uploadItemImage(itemName) {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const formData = new FormData();
+                formData.append('file', file);
+
+                try {
+                    const response = await fetch(`/api/items/${encodeURIComponent(itemName)}/image`, {
+                        method: 'POST',
+                        headers: { 'X-CSRF-Token': CSRF_TOKEN },
+                        body: formData
+                    });
+                    const data = await response.json();
+                    if (data.status === 'success') {
+                        showAlert('items', 'Image uploaded!', 'success');
+                        loadItemsData();
+                    } else {
+                        showAlert('items', 'Error: ' + data.error, 'error');
+                    }
+                } catch (error) {
+                    showAlert('items', 'Error: ' + error.message, 'error');
+                }
+            });
+            input.click();
+        }
+
+        async function deleteItem(itemName) {
+            if (!confirm(`Delete item "${itemName}"?`)) return;
+            try {
+                await apiCall('DELETE', `/items/${encodeURIComponent(itemName)}`);
+                showAlert('items', `"${itemName}" removed!`, 'success');
+                loadItemsData();
+            } catch (error) {
+                showAlert('items', 'Error: ' + error.message, 'error');
+            }
+        }
+
+        async function resetItems() {
+            if (!confirm('Reset Items and remove all items and uploaded images?')) return;
+            try {
+                await apiCall('DELETE', '/items');
+                document.getElementById('new-item-name').value = '';
+                document.getElementById('item-consumable').value = 'No';
+                document.getElementById('item-description').value = '';
+                document.getElementById('item-image').value = '';
+                showAlert('items', 'All items were removed.', 'success');
+                loadItemsData();
+                loadOverview();
+            } catch (error) {
+                showAlert('items', 'Error: ' + error.message, 'error');
+            }
+        }
+
+        // ===== SETTINGS =====
+        async function loadSettingsData() {
+            try {
+                const workCooldown = await apiCall('GET', '/settings/work-cooldown');
+                const deathCooldown = await apiCall('GET', '/settings/death-cooldown');
+                const combatRules = await apiCall('GET', '/settings/combat-rules');
+
+                document.getElementById('work-cooldown').value = workCooldown.days || 0;
+                document.getElementById('death-cooldown').value = deathCooldown.days || 0;
+                document.getElementById('death-infinite').value = deathCooldown.infinite ? 'true' : 'false';
+                document.getElementById('combat-solid-hit').value = combatRules.solid_hit;
+                document.getElementById('combat-small-hit').value = combatRules.small_hit;
+                document.getElementById('combat-miss').value = combatRules.miss;
+                document.getElementById('combat-self-hit').value = combatRules.self_hit;
+            } catch (error) {
+                showAlert('settings', 'Failed to load settings: ' + error.message, 'error');
+            }
+        }
+
+        async function saveWorkCooldown() {
+            try {
+                const days = parseInt(document.getElementById('work-cooldown').value);
+                if (isNaN(days) || days < 0) {
+                    showAlert('settings', 'Please enter valid days', 'error');
+                    return;
+                }
+
+                await apiCall('POST', '/settings/work-cooldown', { days });
+                showAlert('settings', `Work cooldown set to ${days} day(s)!`, 'success');
+            } catch (error) {
+                showAlert('settings', 'Error: ' + error.message, 'error');
+            }
+        }
+
+        async function saveDeathSettings() {
+            try {
+                const days = parseInt(document.getElementById('death-cooldown').value);
+                const infinite = document.getElementById('death-infinite').value === 'true';
+                if (isNaN(days) || days < 0) {
+                    showAlert('settings', 'Please enter valid days', 'error');
+                    return;
+                }
+
+                await apiCall('POST', '/settings/death-cooldown', { days, infinite });
+                showAlert('settings', `Death settings updated: ${days} day(s), infinite ${infinite ? 'enabled' : 'disabled'}.`, 'success');
+            } catch (error) {
+                showAlert('settings', 'Error: ' + error.message, 'error');
+            }
+        }
+
+        async function saveCombatRules() {
+            try {
+                const solidHit = parseFloat(document.getElementById('combat-solid-hit').value);
+                const smallHit = parseFloat(document.getElementById('combat-small-hit').value);
+                const miss = parseFloat(document.getElementById('combat-miss').value);
+                const selfHit = parseFloat(document.getElementById('combat-self-hit').value);
+
+                const values = [solidHit, smallHit, miss, selfHit];
+                if (values.some(v => Number.isNaN(v) || v < 0)) {
+                    showAlert('settings', 'Please enter valid non-negative combat rule values', 'error');
+                    return;
+                }
+
+                const total = solidHit + smallHit + miss + selfHit;
+                if (Math.abs(total - 1.0) > 0.0001) {
+                    showAlert('settings', 'Combat rule values must sum to 1.0', 'error');
+                    return;
+                }
+
+                await apiCall('POST', '/settings/combat-rules', {
+                    solid_hit: solidHit,
+                    small_hit: smallHit,
+                    miss,
+                    self_hit: selfHit
+                });
+                showAlert('settings', 'Combat rules updated!', 'success');
+            } catch (error) {
+                showAlert('settings', 'Error: ' + error.message, 'error');
+            }
+        }
+
+        async function resetSettings() {
+            if (!confirm('Reset Settings back to default values?')) return;
+            try {
+                await apiCall('POST', '/settings/reset');
+                await loadSettingsData();
+                showAlert('settings', 'Settings were reset to defaults.', 'success');
+            } catch (error) {
+                showAlert('settings', 'Error: ' + error.message, 'error');
+            }
+        }
+
+        // ===== USERS =====
+
+        function startUsersAutoSync() {
+            // Offline mode: keep users view stable and avoid periodic list refresh.
+            stopUsersAutoSync();
+        }
+
+        function stopUsersAutoSync() {
+            if (usersSyncTimer) {
+                window.clearInterval(usersSyncTimer);
+                usersSyncTimer = null;
+            }
+        }
+
+        function shouldRunUsersBackgroundSync() {
+            if (currentDashboardTab !== 'users') {
+                return false;
+            }
+
+            const gridView = document.getElementById('users-grid-view');
+            if (!gridView || gridView.style.display === 'none') {
+                return false;
+            }
+
+            return !window.currentUserDetail?.userId;
+        }
+
+        async function refreshUsersSync() {
+            if (!shouldRunUsersBackgroundSync() || usersSyncInFlight) return;
+            usersSyncInFlight = true;
+            try {
+                const users = await apiCall('GET', '/users');
+                window.dashboardUsers = users;
+
+                const filter = document.getElementById('user-filter');
+                const currentValue = filter.value;
+                filter.innerHTML = '<option value="">All Users</option>';
+
+                users.forEach(user => {
+                    const option = document.createElement('option');
+                    option.value = user.user_id;
+                    option.textContent = user.username;
+                    filter.appendChild(option);
+                });
+
+                if (users.some(user => sameUserId(user.user_id, currentValue))) {
+                    filter.value = currentValue;
+                }
+
+                displayUsers(users);
+            } catch (error) {
+                // Silent background sync; no alert spam.
+            } finally {
+                usersSyncInFlight = false;
+            }
+        }
+
+        function createResourceDraft(data) {
+            return {
+                currency: Number.parseFloat(data?.currency || 0) || 0,
+                inventory: (data?.inventory || []).map(item => ({
+                    item_name: String(item.item_name || ''),
+                    quantity: Number.parseInt(item.quantity || 0, 10) || 0
+                })),
+                dirty: false
+            };
+        }
+
+        function sanitizeInventoryRows(rows) {
+            return (rows || [])
+                .map(item => ({
+                    item_name: String(item.item_name || '').trim(),
+                    quantity: Number.parseInt(item.quantity || 0, 10) || 0
+                }))
+                .filter(item => item.item_name && item.quantity > 0);
+        }
+
+        function buildInventoryItemSelectHtml(selectedItemName, onChangeName, index) {
+            const normalizedSelected = String(selectedItemName || '').trim();
+            const options = [...dashboardItemCatalog];
+            if (normalizedSelected && !options.includes(normalizedSelected)) {
+                options.unshift(normalizedSelected);
+            }
+
+            const optionMarkup = ['<option value="">Select Item</option>']
+                .concat(options.map(itemName => {
+                    const selected = itemName === normalizedSelected ? ' selected' : '';
+                    return `<option value="${escHtml(itemName)}"${selected}>${escHtml(itemName)}</option>`;
+                }))
+                .join('');
+
+            return `<select onchange="${onChangeName}(${index}, this.value)">${optionMarkup}</select>`;
+        }
+
+        function renderInventoryEditor(tbodyId, rows, onChangeName, onChangeQty, onRemoveClick, emptyMessage, editable) {
+            const tbody = document.getElementById(tbodyId);
+            if (!rows.length) {
+                tbody.innerHTML = `<tr><td colspan="3" class="inline-empty">${emptyMessage}</td></tr>`;
+                return;
+            }
+
+            if (!editable) {
+                tbody.innerHTML = rows.map(item => `
+                    <tr>
+                        <td>${escHtml(item.item_name || '—')}</td>
+                        <td>${Number.parseInt(item.quantity || 0, 10) || 0}</td>
+                        <td></td>
+                    </tr>
+                `).join('');
+                return;
+            }
+
+            tbody.innerHTML = rows.map((item, index) => `
+                <tr>
+                    <td>${buildInventoryItemSelectHtml(item.item_name, onChangeName, index)}</td>
+                    <td><input type="number" min="0" step="1" value="${Number.parseInt(item.quantity || 0, 10) || 0}" oninput="${onChangeQty}(${index}, this.value)"></td>
+                    <td class="inventory-row-actions"><button class="btn-danger btn-tiny" onclick="${onRemoveClick}(${index})">Remove</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function syncUserResourceEditor(data) {
+            window.userResourceDraft = createResourceDraft(data);
+            document.getElementById('detail-currency').textContent = window.userResourceDraft.currency.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            document.getElementById('detail-currency-input').value = window.userResourceDraft.currency;
+            renderInventoryEditor(
+                'detail-inventory',
+                window.userResourceDraft.inventory,
+                'updateUserInventoryName',
+                'updateUserInventoryQuantity',
+                'removeUserInventoryRow',
+                'No items',
+                canEditResources()
+            );
+        }
+
+        function syncCharacterResourceEditor(data) {
+            window.characterResourceDraft = createResourceDraft(data);
+            document.getElementById('character-currency').textContent = window.characterResourceDraft.currency.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            document.getElementById('character-currency-input').value = window.characterResourceDraft.currency;
+            renderInventoryEditor(
+                'character-inventory',
+                window.characterResourceDraft.inventory,
+                'updateCharacterInventoryName',
+                'updateCharacterInventoryQuantity',
+                'removeCharacterInventoryRow',
+                'No items for this character',
+                canEditResources()
+            );
+        }
+
+        function applyUserDetailData(userId, user, data, preserveFilter = true) {
+            document.getElementById('detail-avatar').src = user.avatar_url || '';
+            document.getElementById('detail-avatar').alt = user.username || '';
+            document.getElementById('detail-username').textContent = user.username || '';
+            document.getElementById('detail-role').textContent = 'Role: ' + (user.role || '');
+
+            window.currentUserDetail = {
+                userId,
+                user,
+                sheets: data.sheets || [],
+                currency: data.currency || 0,
+                inventory: data.inventory || []
+            };
+
+            if (!window.userResourceDraft || !window.userResourceDraft.dirty) {
+                syncUserResourceEditor(data);
+            }
+
+            if (!preserveFilter) {
+                document.getElementById('sheet-status-filter').value = '';
+            }
+            updateImportButtonState();
+            renderCharacterCards();
+        }
+
+        async function refreshCurrentUserDetail(silent = false) {
+            if (!window.currentUserDetail || !window.currentUserDetail.userId) return;
+            const userId = window.currentUserDetail.userId;
+            const user = (window.dashboardUsers || []).find(u => sameUserId(u.user_id, userId)) || window.currentUserDetail.user;
+            if (!user) return;
+
+            try {
+                const data = await apiCall('GET', `/users/${userId}/detail`);
+                applyUserDetailData(userId, user, data, true);
+
+                if (window.currentCharacterDetail && window.currentCharacterDetail.sheet_id && !window.characterResourceDraft?.dirty) {
+                    await refreshCurrentCharacterDetail(true);
+                }
+            } catch (err) {
+                if (!silent) {
+                    showAlert('users', 'Failed to load user detail: ' + err.message, 'error');
+                }
+            }
+        }
+
+        function getSheetById(sheetId) {
+            const d = window.currentUserDetail;
+            if (!d || !d.sheets) return null;
+            return d.sheets.find(s => s.sheet_id === sheetId) || null;
+        }
+
+        function isSheetResolved(sheet) {
+            return !!sheet && (sheet.status === 'Approved' || sheet.status === 'Denied');
+        }
+
+        function _attachUsersListClickDelegate() {
+            if (_usersListenerAttached) return;
+            _usersListenerAttached = true;
+            document.getElementById('users-list').addEventListener('click', function (e) {
+                const card = e.target.closest('.user-card');
+                if (card && card.dataset.userId) openUserDetail(card.dataset.userId);
+            });
+        }
+
+        async function loadUsersData() {
+            try {
+                const users = await apiCall('GET', '/users');
+                if (canEditResources()) {
+                    // Item catalog is only needed for editable inventory selectors.
+                    await loadDashboardItemCatalog();
+                }
+                window.dashboardUsers = users;
+
+                const filter = document.getElementById('user-filter');
+                const currentValue = filter.value;
+                filter.innerHTML = '<option value="">All Users</option>';
+
+                users.forEach(user => {
+                    const option = document.createElement('option');
+                    option.value = user.user_id;
+                    option.textContent = user.username;
+                    filter.appendChild(option);
+                });
+
+                if (users.some(user => sameUserId(user.user_id, currentValue))) {
+                    filter.value = currentValue;
+                }
+
+                _attachUsersListClickDelegate();
+                displayUsers(users);
+                if (pendingUsersNavigation) {
+                    await handlePendingUsersNavigation();
+                }
+            } catch (error) {
+                showAlert('users', 'Failed to load users: ' + error.message, 'error');
+            }
+        }
+
+        function displayUsers(users) {
+            const list = document.getElementById('users-list');
+            const selectedUserId = document.getElementById('user-filter').value;
+            const filteredUsers = selectedUserId
+                ? users.filter(user => sameUserId(user.user_id, selectedUserId))
+                : users;
+
+            if (filteredUsers.length === 0) {
+                list.innerHTML = '<div class="empty-state" style="grid-column: 1 / -1;"><div class="empty-state-icon">&#x1F465;</div><p>No users found</p></div>';
+                return;
+            }
+
+            list.innerHTML = filteredUsers.map(user => `
+                <div class="user-card" data-user-id="${user.user_id}">
+                    <img class="user-avatar" src="${user.avatar_url}" alt="${escHtml(user.username)}">
+                    <div class="user-meta">
+                        <div class="user-name">${escHtml(user.username)}</div>
+                        <div class="user-subtitle">Role: ${escHtml(user.role)}</div>
+                        <div class="user-stats">
+                            <div class="user-stat">
+                                <span class="user-stat-label">Approved</span>
+                                <span class="user-stat-value">${user.counts.approved}</span>
+                            </div>
+                            <div class="user-stat">
+                                <span class="user-stat-label">Denied</span>
+                                <span class="user-stat-value">${user.counts.denied}</span>
+                            </div>
+                            <div class="user-stat">
+                                <span class="user-stat-label">Drafts</span>
+                                <span class="user-stat-value">${user.counts.drafts}</span>
+                            </div>
+                            <div class="user-stat">
+                                <span class="user-stat-label">On Discuss</span>
+                                <span class="user-stat-value">${user.counts.discuss}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ===== USER DETAIL =====
+        window.currentUserDetail = null;
+
+        function escHtml(str) {
+            return String(str || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function openUserDetail(userId, updateUrl = true) {
+            const user = (window.dashboardUsers || []).find(u => sameUserId(u.user_id, userId));
+            if (!user) return;
+
+            document.getElementById('users-grid-view').style.display = 'none';
+            document.getElementById('users-detail-view').style.display = 'block';
+            document.getElementById('user-profile-content').style.display = 'block';
+            document.getElementById('character-detail-panel').style.display = 'none';
+
+            if (updateUrl) {
+                history.pushState({ tab: 'users', userId }, '', `/users/${userId}`);
+            }
+
+            document.getElementById('detail-avatar').src = user.avatar_url || '';
+            document.getElementById('detail-avatar').alt = user.username || '';
+            document.getElementById('detail-username').textContent = user.username || '';
+            document.getElementById('detail-role').textContent = 'Role: ' + (user.role || '');
+            document.getElementById('detail-currency').textContent = '...';
+            document.getElementById('detail-currency-input').value = '';
+            document.getElementById('detail-inventory').innerHTML =
+                '<tr><td colspan="3" class="inline-empty">Loading...</td></tr>';
+            document.getElementById('character-cards-list').innerHTML =
+                '<p style="color:#9ca3af;padding:12px;">Loading...</p>';
+            document.getElementById('sheet-status-filter').value = '';
+            document.getElementById('character-fields-list').innerHTML = '<tr><td colspan="2" class="inline-empty">Select a character to view fields</td></tr>';
+            document.getElementById('character-inventory').innerHTML = '<tr><td colspan="3" class="inline-empty">Select a character to load resources</td></tr>';
+            document.getElementById('character-currency').textContent = '—';
+            document.getElementById('character-currency-input').value = '';
+
+            window.currentUserDetail = { userId, user };
+            window.userResourceDraft = null;
+            window.currentCharacterDetail = null;
+            window.characterResourceDraft = null;
+
+            apiCall('GET', `/users/${userId}/detail`).then(data => {
+                applyUserDetailData(userId, user, data, false);
+            }).catch(err => {
+                showAlert('users', 'Failed to load user detail: ' + err.message, 'error');
+            });
+        }
+
+        function closeUserDetail(updateUrl = true) {
+            if (updateUrl) {
+                history.pushState({ tab: 'users' }, '', '/users');
+            }
+            document.getElementById('users-detail-view').style.display = 'none';
+            document.getElementById('users-grid-view').style.display = 'block';
+            window.currentUserDetail = null;
+            window.userResourceDraft = null;
+            window.currentCharacterDetail = null;
+            window.characterResourceDraft = null;
+            updateImportButtonState();
+        }
+
+        function markUserResourcesDirty() {
+            if (!canEditResources()) return;
+            if (!window.userResourceDraft) {
+                window.userResourceDraft = createResourceDraft(window.currentUserDetail || {});
+            }
+            const parsed = Number.parseFloat(document.getElementById('detail-currency-input').value);
+            window.userResourceDraft.currency = Number.isFinite(parsed) ? parsed : 0;
+            window.userResourceDraft.dirty = true;
+            document.getElementById('detail-currency').textContent = window.userResourceDraft.currency.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function addUserInventoryRow() {
+            if (!canEditResources()) return;
+            if (!window.userResourceDraft) {
+                window.userResourceDraft = createResourceDraft(window.currentUserDetail || {});
+            }
+            window.userResourceDraft.inventory.push({ item_name: '', quantity: 1 });
+            window.userResourceDraft.dirty = true;
+            renderInventoryEditor('detail-inventory', window.userResourceDraft.inventory, 'updateUserInventoryName', 'updateUserInventoryQuantity', 'removeUserInventoryRow', 'No items', canEditResources());
+        }
+
+        function updateUserInventoryName(index, value) {
+            if (!canEditResources()) return;
+            if (!window.userResourceDraft) return;
+            window.userResourceDraft.inventory[index].item_name = value;
+            window.userResourceDraft.dirty = true;
+        }
+
+        function updateUserInventoryQuantity(index, value) {
+            if (!canEditResources()) return;
+            if (!window.userResourceDraft) return;
+            window.userResourceDraft.inventory[index].quantity = Number.parseInt(value || 0, 10) || 0;
+            window.userResourceDraft.dirty = true;
+        }
+
+        function removeUserInventoryRow(index) {
+            if (!canEditResources()) return;
+            if (!window.userResourceDraft) return;
+            window.userResourceDraft.inventory.splice(index, 1);
+            window.userResourceDraft.dirty = true;
+            renderInventoryEditor('detail-inventory', window.userResourceDraft.inventory, 'updateUserInventoryName', 'updateUserInventoryQuantity', 'removeUserInventoryRow', 'No items', canEditResources());
+        }
+
+        function cancelUserResourceEdits() {
+            if (!window.currentUserDetail) return;
+            syncUserResourceEditor(window.currentUserDetail);
+        }
+
+        async function saveUserCurrency() {
+            if (!canEditResources()) {
+                showAlert('users', 'Members can view inventory but cannot edit it.', 'error');
+                return;
+            }
+            const d = window.currentUserDetail;
+            if (!d || !window.userResourceDraft) return;
+            try {
+                const payload = {
+                    currency: Number.parseFloat(document.getElementById('detail-currency-input').value || '0') || 0
+                };
+                const result = await apiCall('POST', `/users/${d.userId}/resources`, payload);
+                window.currentUserDetail.currency = result.currency || 0;
+                syncUserResourceEditor(window.currentUserDetail);
+                showAlert('users', 'User currency updated.', 'success');
+            } catch (err) {
+                showAlert('users', 'Failed to save user currency: ' + err.message, 'error');
+            }
+        }
+
+        async function saveUserInventory() {
+            if (!canEditResources()) {
+                showAlert('users', 'Members can view inventory but cannot edit it.', 'error');
+                return;
+            }
+            const d = window.currentUserDetail;
+            if (!d || !window.userResourceDraft) return;
+            try {
+                const payload = {
+                    inventory: sanitizeInventoryRows(window.userResourceDraft.inventory)
+                };
+                const result = await apiCall('POST', `/users/${d.userId}/resources`, payload);
+                window.currentUserDetail.inventory = result.inventory || [];
+                syncUserResourceEditor(window.currentUserDetail);
+                document.getElementById('detail-currency-input').value = window.currentUserDetail.currency || 0;
+                showAlert('users', 'User inventory updated.', 'success');
+            } catch (err) {
+                showAlert('users', 'Failed to save user inventory: ' + err.message, 'error');
+            }
+        }
+
+        async function openCharacterDetail(sheetId, updateUrl = true) {
+            const d = window.currentUserDetail;
+            if (!d || !sheetId) return;
+            document.getElementById('user-profile-content').style.display = 'none';
+            document.getElementById('character-detail-panel').style.display = 'block';
+
+            if (updateUrl) {
+                history.pushState({ tab: 'users', userId: d.userId, sheetId }, '', `/users/${d.userId}/characters/${sheetId}`);
+            }
+
+            document.getElementById('character-detail-title').textContent = 'Loading character...';
+            document.getElementById('character-detail-status').textContent = '';
+            document.getElementById('character-fields-list').innerHTML = '<tr><td colspan="2" class="inline-empty">Loading fields...</td></tr>';
+            document.getElementById('character-inventory').innerHTML = '<tr><td colspan="3" class="inline-empty">Loading resources...</td></tr>';
+            document.getElementById('character-currency').textContent = '...';
+            document.getElementById('character-currency-input').value = '';
+
+            try {
+                const detail = await apiCall('GET', `/users/${d.userId}/characters/${sheetId}`);
+                window.currentCharacterDetail = detail;
+                syncCharacterResourceEditor(detail);
+                renderCharacterFields(detail.fields || []);
+                document.getElementById('character-detail-title').textContent = detail.sheet_name || 'Character Detail';
+                document.getElementById('character-detail-status').textContent = 'Status: ' + (detail.status || 'Unknown');
+            } catch (err) {
+                showAlert('users', 'Failed to load character detail: ' + err.message, 'error');
+            }
+        }
+
+        async function refreshCurrentCharacterDetail(silent = false) {
+            const d = window.currentUserDetail;
+            const c = window.currentCharacterDetail;
+            if (!d || !c || !c.sheet_id) return;
+            try {
+                const detail = await apiCall('GET', `/users/${d.userId}/characters/${c.sheet_id}`);
+                window.currentCharacterDetail = detail;
+                if (!window.characterResourceDraft || !window.characterResourceDraft.dirty) {
+                    syncCharacterResourceEditor(detail);
+                }
+                renderCharacterFields(detail.fields || []);
+                document.getElementById('character-detail-title').textContent = detail.sheet_name || 'Character Detail';
+                document.getElementById('character-detail-status').textContent = 'Status: ' + (detail.status || 'Unknown');
+            } catch (err) {
+                if (!silent) {
+                    showAlert('users', 'Failed to refresh character detail: ' + err.message, 'error');
+                }
+            }
+        }
+
+        function closeCharacterDetail(updateUrl = true) {
+            document.getElementById('user-profile-content').style.display = 'block';
+            document.getElementById('character-detail-panel').style.display = 'none';
+            window.currentCharacterDetail = null;
+            window.characterResourceDraft = null;
+            if (updateUrl && window.currentUserDetail?.userId) {
+                history.pushState({ tab: 'users', userId: window.currentUserDetail.userId }, '', `/users/${window.currentUserDetail.userId}`);
+            }
+        }
+
+        function renderCharacterFields(fields) {
+            const tbody = document.getElementById('character-fields-list');
+            const actionWrap = document.getElementById('character-field-actions');
+            if (!fields.length) {
+                tbody.innerHTML = '<tr><td colspan="2" class="inline-empty">No fields found for this character</td></tr>';
+                actionWrap.style.display = 'none';
+                return;
+            }
+
+            const editable = canEditViewedUserSheet();
+            tbody.innerHTML = fields.map(field => {
+                const fieldName = String(field.field_name || '');
+                const isStatus = fieldName.toLowerCase() === 'status';
+                const fieldValue = field.data || '';
+                if (!editable || isStatus) {
+                    return `
+                        <tr>
+                            <th>${escHtml(fieldName)}</th>
+                            <td>${escHtml(fieldValue || '—')}</td>
+                        </tr>
+                    `;
+                }
+                return `
+                    <tr>
+                        <th>${escHtml(fieldName)}</th>
+                        <td>
+                            <input
+                                type="text"
+                                data-sheet-field-name="${escHtml(fieldName)}"
+                                value="${escHtml(fieldValue)}"
+                                style="width: 100%;"
+                            >
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            actionWrap.style.display = editable ? 'block' : 'none';
+        }
+
+        function markCharacterResourcesDirty() {
+            if (!canEditResources()) return;
+            if (!window.characterResourceDraft) {
+                window.characterResourceDraft = createResourceDraft(window.currentCharacterDetail || {});
+            }
+            const parsed = Number.parseFloat(document.getElementById('character-currency-input').value);
+            window.characterResourceDraft.currency = Number.isFinite(parsed) ? parsed : 0;
+            window.characterResourceDraft.dirty = true;
+            document.getElementById('character-currency').textContent = window.characterResourceDraft.currency.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function addCharacterInventoryRow() {
+            if (!canEditResources()) return;
+            if (!window.characterResourceDraft) {
+                window.characterResourceDraft = createResourceDraft(window.currentCharacterDetail || {});
+            }
+            window.characterResourceDraft.inventory.push({ item_name: '', quantity: 1 });
+            window.characterResourceDraft.dirty = true;
+            renderInventoryEditor('character-inventory', window.characterResourceDraft.inventory, 'updateCharacterInventoryName', 'updateCharacterInventoryQuantity', 'removeCharacterInventoryRow', 'No items for this character', canEditResources());
+        }
+
+        function updateCharacterInventoryName(index, value) {
+            if (!canEditResources()) return;
+            if (!window.characterResourceDraft) return;
+            window.characterResourceDraft.inventory[index].item_name = value;
+            window.characterResourceDraft.dirty = true;
+        }
+
+        function updateCharacterInventoryQuantity(index, value) {
+            if (!canEditResources()) return;
+            if (!window.characterResourceDraft) return;
+            window.characterResourceDraft.inventory[index].quantity = Number.parseInt(value || 0, 10) || 0;
+            window.characterResourceDraft.dirty = true;
+        }
+
+        function removeCharacterInventoryRow(index) {
+            if (!canEditResources()) return;
+            if (!window.characterResourceDraft) return;
+            window.characterResourceDraft.inventory.splice(index, 1);
+            window.characterResourceDraft.dirty = true;
+            renderInventoryEditor('character-inventory', window.characterResourceDraft.inventory, 'updateCharacterInventoryName', 'updateCharacterInventoryQuantity', 'removeCharacterInventoryRow', 'No items for this character', canEditResources());
+        }
+
+        function cancelCharacterResourceEdits() {
+            if (!window.currentCharacterDetail) return;
+            syncCharacterResourceEditor(window.currentCharacterDetail);
+        }
+
+        async function saveCharacterCurrency() {
+            if (!canEditResources()) {
+                showAlert('users', 'Members can view inventory but cannot edit it.', 'error');
+                return;
+            }
+            const d = window.currentUserDetail;
+            const c = window.currentCharacterDetail;
+            if (!d || !c || !window.characterResourceDraft) return;
+            try {
+                const payload = {
+                    currency: Number.parseFloat(document.getElementById('character-currency-input').value || '0') || 0
+                };
+                const result = await apiCall('POST', `/users/${d.userId}/characters/${c.sheet_id}/resources`, payload);
+                window.currentCharacterDetail = result;
+                syncCharacterResourceEditor(result);
+                renderCharacterFields(result.fields || []);
+                showAlert('users', `Currency updated for ${result.sheet_name || 'character'}.`, 'success');
+            } catch (err) {
+                showAlert('users', 'Failed to save character currency: ' + err.message, 'error');
+            }
+        }
+
+        async function saveCharacterInventory() {
+            if (!canEditResources()) {
+                showAlert('users', 'Members can view inventory but cannot edit it.', 'error');
+                return;
+            }
+            const d = window.currentUserDetail;
+            const c = window.currentCharacterDetail;
+            if (!d || !c || !window.characterResourceDraft) return;
+            try {
+                const payload = {
+                    inventory: sanitizeInventoryRows(window.characterResourceDraft.inventory)
+                };
+                const result = await apiCall('POST', `/users/${d.userId}/characters/${c.sheet_id}/resources`, payload);
+                window.currentCharacterDetail = result;
+                syncCharacterResourceEditor(result);
+                renderCharacterFields(result.fields || []);
+                document.getElementById('character-currency-input').value = window.currentCharacterDetail.currency || 0;
+                showAlert('users', `Inventory updated for ${result.sheet_name || 'character'}.`, 'success');
+            } catch (err) {
+                showAlert('users', 'Failed to save character inventory: ' + err.message, 'error');
+            }
+        }
+
+        // ===== SHEET ACTION MODAL =====
+        let _modalResolve = null;
+
+        function openSheetModal(actionLabel, accentColor) {
+            return new Promise(resolve => {
+                _modalResolve = resolve;
+                document.getElementById('modal-title').textContent = actionLabel + ' — Leave a comment?';
+                document.getElementById('modal-comment').value = '';
+                const btn = document.getElementById('modal-confirm-btn');
+                btn.textContent = 'Confirm ' + actionLabel;
+                btn.style.background = accentColor;
+                btn.onclick = () => {
+                    const comment = document.getElementById('modal-comment').value.trim();
+                    closeSheetModal(true, comment);
+                };
+                const overlay = document.getElementById('sheet-action-modal');
+                overlay.style.display = 'flex';
+                document.getElementById('modal-comment').focus();
+            });
+        }
+
+        function closeSheetModal(confirmed = false, comment = '') {
+            document.getElementById('sheet-action-modal').style.display = 'none';
+            if (_modalResolve) {
+                _modalResolve({ confirmed, comment });
+                _modalResolve = null;
+            }
+        }
+
+        // Close modal on backdrop click
+        document.addEventListener('click', function (e) {
+            const overlay = document.getElementById('sheet-action-modal');
+            if (e.target === overlay) closeSheetModal();
+        });
+
+        function renderCharacterCards() {
+            const d = window.currentUserDetail;
+            if (!d || !d.sheets) return;
+            const canTransferSheets = isOwnViewedUser();
+
+            const filter = document.getElementById('sheet-status-filter').value;
+            const sheets = filter ? d.sheets.filter(s => s.status === filter) : d.sheets;
+            const list = document.getElementById('character-cards-list');
+
+            if (!sheets.length) {
+                list.innerHTML = '<p style="color:#9ca3af;text-align:center;padding:16px;">No characters found</p>';
+                return;
+            }
+
+            const statusLabelMap = { Draft: 'Drafts', Discuss: 'On Discuss' };
+            const badgeClassMap = {
+                Approved:  'badge-approved',
+                Denied:    'badge-denied',
+                Draft:     'badge-draft',
+                Discuss:   'badge-discuss',
+                Submitted: 'badge-submitted',
+            };
+
+            list.innerHTML = sheets.map(s => {
+                const iconUrl = s.has_icon
+                    ? `/api/users/${d.userId}/sheets/${s.sheet_id}/icon`
+                    : 'https://cdn.discordapp.com/embed/avatars/0.png';
+                const badge = badgeClassMap[s.status] || 'badge-draft';
+                const label = statusLabelMap[s.status] || s.status;
+                const isResolved = s.status === 'Approved' || s.status === 'Denied';
+                const canEditSheet = canEditViewedUserSheet();
+                const canDeleteSheet = canDeleteViewedUserSheet();
+                let actionButtons = '';
+                if (DASHBOARD_PERMISSIONS.canChangeSheetStatus) {
+                    const statusButtons = isResolved
+                        ? ''
+                        : [
+                            { cls: 'btn-approve', status: 'Approved', label: 'Approve', color: '#059669' },
+                            { cls: 'btn-deny',    status: 'Denied',   label: 'Deny',    color: '#dc2626' },
+                            { cls: 'btn-discuss', status: 'Discuss',  label: 'Discuss', color: '#3b82f6' },
+                        ].map(b => {
+                            const dis = s.status === b.status ? 'disabled' : '';
+                            return `<button class="char-btn ${b.cls}" ${dis} onclick="promptSheetAction('${s.sheet_id}','${b.status}','${b.label}','${b.color}')">${b.label}</button>`;
+                        }).join('');
+                    const deleteBtn = canDeleteSheet
+                        ? `<button class="char-btn btn-deny" onclick="promptDeleteSheet('${s.sheet_id}', '${escHtml(s.sheet_name)}')">Delete</button>`
+                        : '';
+                    actionButtons = `${statusButtons}${deleteBtn}`;
+                } else {
+                    const editBtn = canEditSheet
+                        ? `<button class="char-btn btn-draft" onclick="openCharacterDetail('${s.sheet_id}')">Edit</button>`
+                        : '';
+                    const deleteBtn = canDeleteSheet
+                        ? `<button class="char-btn btn-deny" onclick="promptDeleteSheet('${s.sheet_id}', '${escHtml(s.sheet_name)}')">Delete</button>`
+                        : '';
+                    actionButtons = `${editBtn}${deleteBtn}`;
+                }
+                const exportButton = canTransferSheets
+                    ? `<button class="char-btn btn-draft" onclick='exportSheet("${d.userId}","${s.sheet_id}",${JSON.stringify(String(s.sheet_name || 'Character'))})'>Export</button>`
+                    : '';
+                const transferButtons = `<button class="char-btn btn-draft" onclick="openCharacterDetail('${s.sheet_id}')">View Character</button>${exportButton}`;
+                const primaryActions = actionButtons ? `<div class="char-actions-primary">${actionButtons}</div>` : '';
+                const secondaryActions = `<div class="char-actions-secondary">${transferButtons}</div>`;
+
+                return `
+                    <div class="character-card" data-sheet-id="${s.sheet_id}">
+                        <img class="char-icon" src="${iconUrl}" alt="${escHtml(s.sheet_name)}"
+                             onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                        <div class="char-info">
+                            <div class="char-name">${escHtml(s.sheet_name)}</div>
+                            <span class="char-status-badge ${badge}">${label}</span>
+                        </div>
+                        <div class="char-actions">${primaryActions}${secondaryActions}</div>
+                    </div>`;
+            }).join('');
+        }
+
+        async function saveCharacterSheetEdits() {
+            const d = window.currentUserDetail;
+            const c = window.currentCharacterDetail;
+            if (!d || !c || !c.sheet_id) return;
+            if (!canEditViewedUserSheet()) {
+                showAlert('users', 'You can only edit your own sheets.', 'error');
+                return;
+            }
+
+            const updateInputs = document.querySelectorAll('#character-fields-list input[data-sheet-field-name]');
+            const updates = {};
+            updateInputs.forEach(input => {
+                const fieldName = String(input.getAttribute('data-sheet-field-name') || '').trim();
+                if (!fieldName) return;
+                updates[fieldName] = input.value;
+            });
+
+            if (!Object.keys(updates).length) {
+                showAlert('users', 'No editable fields found.', 'error');
+                return;
+            }
+
+            try {
+                const result = await apiCall('PATCH', `/users/${d.userId}/sheets/${c.sheet_id}`, { updates });
+                window.currentCharacterDetail = result;
+                renderCharacterFields(result.fields || []);
+                document.getElementById('character-detail-title').textContent = result.sheet_name || 'Character Detail';
+                document.getElementById('character-detail-status').textContent = 'Status: ' + (result.status || 'Unknown');
+
+                if (Array.isArray(window.currentUserDetail?.sheets)) {
+                    const target = window.currentUserDetail.sheets.find(sheet => sheet.sheet_id === c.sheet_id);
+                    if (target) {
+                        target.status = result.status || target.status;
+                        target.sheet_name = result.sheet_name || target.sheet_name;
+                    }
+                }
+                renderCharacterCards();
+                showAlert('users', 'Sheet updated. Status was set to Draft.', 'success');
+            } catch (err) {
+                showAlert('users', 'Failed to save sheet edits: ' + err.message, 'error');
+            }
+        }
+
+        async function exportSheet(userId, sheetId, sheetName) {
+            try {
+                const normalizedUserId = String(userId || '').trim();
+                const normalizedSheetId = String(sheetId || '').trim();
+                const data = await apiCall('GET', `/users/${normalizedUserId}/sheets/${normalizedSheetId}/export`);
+                const jsonStr = JSON.stringify(data, null, 2);
+                const blob = new Blob([jsonStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${sheetName.replace(/[^a-z0-9-]/gi, '_')}_export.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showAlert('users', `Exported "${sheetName}" successfully!`, 'success');
+            } catch (err) {
+                showAlert('users', 'Failed to export sheet: ' + err.message, 'error');
+            }
+        }
+
+        function triggerImportSheet() {
+            document.getElementById('import-sheet-input').click();
+        }
+
+        async function createNewSheet() {
+            const d = window.currentUserDetail;
+            if (!d || !isOwnViewedUser()) {
+                showAlert('users', 'You can only create sheets for your own profile.', 'error');
+                return;
+            }
+
+            const defaultName = `New Character ${new Date().toISOString().slice(0, 10)}`;
+            const sheetName = (prompt('Enter a name for the new sheet:', defaultName) || '').trim();
+            if (!sheetName) {
+                return;
+            }
+
+            try {
+                const normalizedUserId = String(d.userId || '').trim();
+                const payload = { sheet_name: sheetName };
+                const result = await apiCall('POST', `/users/${normalizedUserId}/sheets/new`, payload);
+                if (result && result.status === 'success') {
+                    showAlert('users', `Created sheet "${sheetName}".`, 'success');
+                    openUserDetail(d.userId);
+                    return;
+                }
+                showAlert('users', result?.error || 'Failed to create sheet.', 'error');
+            } catch (err) {
+                showAlert('users', 'Failed to create sheet: ' + err.message, 'error');
+            }
+        }
+
+        async function handleImportSheetFile(event) {
+            const file = event.target.files?.[0];
+            if (!file) return;
+
+            try {
+                const text = await file.text();
+                const data = JSON.parse(text);
+                const d = window.currentUserDetail;
+                if (!d) {
+                    showAlert('users', 'No user context found.', 'error');
+                    return;
+                }
+
+                // Import the sheet
+                const normalizedUserId = String(d.userId || '').trim();
+                const result = await apiCall('POST', `/users/${normalizedUserId}/sheets/import`, data);
+                if (result && result.status === 'success') {
+                    showAlert('users', result.message || 'Sheet imported successfully!', 'success');
+                    // Reload user detail to show new sheet
+                    openUserDetail(d.userId);
+                } else {
+                    showAlert('users', result.error || 'Import failed.', 'error');
+                }
+            } catch (err) {
+                showAlert('users', 'Failed to import sheet: ' + err.message, 'error');
+            }
+            event.target.value = '';
+        }
+
+        async function promptDeleteSheet(sheetId, sheetName) {
+            const d = window.currentUserDetail;
+            if (!d || !sheetId) return;
+            if (!canDeleteViewedUserSheet()) {
+                showAlert('users', 'You do not have permission to delete this sheet.', 'error');
+                return;
+            }
+
+            const isOtherMember = !isOwnViewedUser();
+            if (!confirm(`Delete sheet "${sheetName}"?`)) return;
+
+            let confirmText = '';
+            if (isOtherMember && DASHBOARD_PERMISSIONS.canDeleteOtherSheets) {
+                confirmText = prompt('Type Confirm (case-sensitive) to delete this member sheet:') || '';
+                if (confirmText !== 'Confirm') {
+                    showAlert('users', 'Delete cancelled. You must type Confirm exactly.', 'error');
+                    return;
+                }
+            }
+
+            try {
+                await apiCall('DELETE', `/users/${d.userId}/sheets/${sheetId}`, { confirm_text: confirmText });
+                showAlert('users', 'Sheet deleted successfully.', 'success');
+
+                await refreshCurrentUserDetail(true);
+                renderCharacterCards();
+
+                if (window.currentCharacterDetail?.sheet_id === sheetId) {
+                    closeCharacterDetail(false);
+                }
+            } catch (err) {
+                showAlert('users', 'Failed to delete sheet: ' + err.message, 'error');
+            }
+        }
+
+        async function promptSheetAction(sheetId, newStatus, actionLabel, accentColor) {
+            await refreshCurrentUserDetail(true);
+            const freshSheet = getSheetById(sheetId);
+            if (!freshSheet) {
+                showAlert('users', 'This sheet could not be found. Refresh the page and try again.', 'error');
+                return;
+            }
+            if (isSheetResolved(freshSheet)) {
+                showAlert('users', `Action blocked. This sheet is already ${freshSheet.status}.`, 'error');
+                return;
+            }
+
+            const { confirmed, comment } = await openSheetModal(actionLabel, accentColor);
+            if (!confirmed) return;
+            await changeSheetStatus(sheetId, newStatus, comment);
+        }
+
+        async function changeSheetStatus(sheetId, newStatus, comment) {
+            const d = window.currentUserDetail;
+            if (!d) return;
+            try {
+                await refreshCurrentUserDetail(true);
+                const freshSheet = getSheetById(sheetId);
+                if (!freshSheet) {
+                    showAlert('users', 'This sheet could not be found. Refresh the page and try again.', 'error');
+                    return;
+                }
+                if (isSheetResolved(freshSheet)) {
+                    showAlert('users', `Action blocked. This sheet is already ${freshSheet.status}.`, 'error');
+                    renderCharacterCards();
+                    return;
+                }
+
+                const result = await apiCall('POST', `/users/${d.userId}/sheets/${sheetId}/status`, { status: newStatus, comment: comment || '' });
+                const sheet = d.sheets.find(s => s.sheet_id === sheetId);
+                if (sheet) sheet.status = newStatus;
+                renderCharacterCards();
+                const gridUser = (window.dashboardUsers || []).find(u => sameUserId(u.user_id, d.userId));
+                if (gridUser) {
+                    const counts = { approved: 0, denied: 0, drafts: 0, discuss: 0 };
+                    d.sheets.forEach(s => {
+                        if (s.status === 'Approved')      counts.approved++;
+                        else if (s.status === 'Denied')   counts.denied++;
+                        else if (s.status === 'Draft')    counts.drafts++;
+                        else if (s.status === 'Discuss')  counts.discuss++;
+                    });
+                    gridUser.counts = counts;
+                }
+
+                if (result && result.notification_sent === false) {
+                    showAlert('users', 'Status updated, but Discord embed was not sent: ' + (result.notification_error || 'Unknown notification error'), 'error');
+                } else if (result && result.review_embed_closed === false) {
+                    showAlert('users', 'Status updated, but review buttons could not be closed: ' + (result.review_embed_close_error || 'Unknown close error'), 'error');
+                } else {
+                    showAlert('users', `Status updated to ${newStatus}.`, 'success');
+                }
+            } catch (err) {
+                showAlert('users', 'Failed to update status: ' + err.message, 'error');
+                await refreshCurrentUserDetail(true);
+                renderCharacterCards();
+            }
+        }
+
+        async function handlePendingUsersNavigation() {
+            if (!pendingUsersNavigation?.userId) return;
+
+            const { userId, sheetId } = pendingUsersNavigation;
+            const users = window.dashboardUsers || [];
+            const matchingUser = users.find(user => sameUserId(user.user_id, userId));
+            if (!matchingUser) return;
+
+            pendingUsersNavigation = null;
+            openUserDetail(userId, false);
+
+            if (sheetId) {
+                const waitForDetail = async () => {
+                    for (let attempt = 0; attempt < 30; attempt++) {
+                        if (sameUserId(window.currentUserDetail?.userId, userId) && Array.isArray(window.currentUserDetail.sheets)) {
+                            await openCharacterDetail(sheetId, false);
+                            return;
+                        }
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                };
+                await waitForDetail();
+            }
+        }
+
+        window.addEventListener('popstate', () => {
+            const characterPath = window.location.pathname.match(/^\/users\/(\d{15,20})\/characters\/([A-Za-z0-9]{6,8})$/);
+            if (characterPath) {
+                pendingUsersNavigation = { userId: characterPath[1], sheetId: characterPath[2] };
+                switchTab('users', null, false);
+                return;
+            }
+
+            const userPath = window.location.pathname.match(/^\/users\/(\d{15,20})$/);
+            if (userPath) {
+                pendingUsersNavigation = { userId: userPath[1], sheetId: null };
+                switchTab('users', null, false);
+                return;
+            }
+
+            const pathToTab = Object.entries(TAB_PATHS)
+                .find(([, path]) => path === window.location.pathname);
+            pendingUsersNavigation = null;
+            switchTab(pathToTab ? pathToTab[0] : 'overview', null, false);
+        });
+
+        // Load initial tab selected by Flask route
+        updateActiveServerLabel(INITIAL_ACTIVE_SERVER_NAME || null, INITIAL_ACTIVE_SERVER_ICON || null);
+        applyRoleUiRestrictions();
+        // Offline mode uses a fixed admin role; disable role polling reloads.
+        switchTab('{{ active_tab|default("overview") }}', null, false);
+    </script>
+</body>
+</html>

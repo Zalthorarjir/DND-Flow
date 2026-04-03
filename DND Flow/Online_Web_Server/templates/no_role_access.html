@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DND Flow - Access Restricted</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: radial-gradient(circle at top, #214983 0%, #13243f 45%, #0c1322 100%);
+            color: #eaf2ff;
+        }
+        .card {
+            width: min(680px, 100%);
+            background: rgba(8, 15, 28, 0.86);
+            border: 1px solid rgba(123, 168, 244, 0.35);
+            border-radius: 18px;
+            padding: 30px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
+            backdrop-filter: blur(6px);
+        }
+        h1 {
+            margin: 0 0 10px;
+            font-size: 2rem;
+            color: #ffffff;
+        }
+        p {
+            margin: 0 0 12px;
+            color: #c8daf9;
+            line-height: 1.5;
+        }
+        .server {
+            display: inline-block;
+            margin-top: 2px;
+            margin-bottom: 18px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(111, 157, 235, 0.2);
+            border: 1px solid rgba(138, 179, 247, 0.38);
+            font-size: 0.9rem;
+            color: #dce9ff;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        .btn {
+            display: inline-block;
+            text-decoration: none;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: #f5f9ff;
+            background: rgba(69, 123, 214, 0.3);
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: background 0.2s, transform 0.2s;
+        }
+        .btn:hover {
+            background: rgba(86, 144, 243, 0.45);
+            transform: translateY(-1px);
+        }
+        .btn.secondary {
+            background: rgba(255, 255, 255, 0.08);
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Access Restricted</h1>
+        <p>You do not have a configured role for this server, so dashboard access is currently blocked.</p>
+        {% if active_server_name %}
+        <div class="server">Selected server: {{ active_server_name }}</div>
+        {% elif active_server_id %}
+        <div class="server">Selected server ID: {{ active_server_id }}</div>
+        {% endif %}
+        <p>Select a different server or ask a server admin to assign your role first.</p>
+        <div class="actions">
+            <a class="btn" href="/">Return to Server Selection</a>
+            <a class="btn secondary" href="/logout">Logout</a>
+        </div>
+    </div>
+</body>
+</html>

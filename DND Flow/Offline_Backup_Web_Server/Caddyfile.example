@@ -1,0 +1,13 @@
+# Replace your-domain.example with your actual hostname.
+# This config terminates HTTPS on 443 and forwards to Flask on 127.0.0.1:5002.
+
+your-domain.example {
+    reverse_proxy 127.0.0.1:5002
+
+    header {
+        # Keep these defaults explicit for troubleshooting and security clarity.
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy strict-origin-when-cross-origin
+    }
+}

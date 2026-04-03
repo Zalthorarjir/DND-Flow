@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DND Flow - Select Server</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            background: radial-gradient(circle at top, #214983 0%, #13243f 45%, #0c1322 100%);
+            color: #eaf2ff;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container { width: min(1400px, 100%); }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 24px;
+            border-radius: 16px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+        }
+        .brand-link { color: #fff; text-decoration: none; }
+        .brand-link:hover { text-decoration: underline; }
+        .header p { margin: 4px 0 0; color: #d7e5ff; }
+        .panel {
+            width: 100%;
+            background: rgba(8, 15, 28, 0.82);
+            border: 1px solid rgba(123, 168, 244, 0.35);
+            border-radius: 16px;
+            padding: 28px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(6px);
+        }
+        h1 { margin: 0 0 8px; font-size: 2rem; letter-spacing: 0.3px; }
+        .subtitle { margin: 0 0 20px; color: #bcd1f7; }
+        .status {
+            display: inline-block;
+            margin-bottom: 18px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: rgba(72, 167, 104, 0.2);
+            border: 1px solid rgba(92, 218, 140, 0.45);
+            color: #c5ffd9;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .grid {
+            margin-top: 16px;
+            max-height: 70vh;
+            overflow: auto;
+            border: 1px solid rgba(107, 142, 198, 0.35);
+            border-radius: 12px;
+            background: rgba(6, 12, 23, 0.75);
+            padding: 12px;
+            display: grid;
+            grid-template-columns: repeat(8, minmax(120px, 1fr));
+            gap: 10px;
+        }
+        .server-card {
+            border: 1px solid rgba(107, 142, 198, 0.35);
+            border-radius: 10px;
+            background: rgba(12, 25, 46, 0.95);
+            color: #eaf2ff;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            text-align: center;
+            cursor: pointer;
+            aspect-ratio: 1 / 1;
+            transition: border-color 0.15s, transform 0.15s, background 0.15s;
+        }
+        .server-card:hover {
+            transform: translateY(-1px);
+            border-color: #8fbcff;
+            background: rgba(17, 34, 63, 0.98);
+        }
+        .server-card.active {
+            border-color: #79b0ff;
+            box-shadow: 0 0 0 1px rgba(121, 176, 255, 0.5);
+            background: rgba(20, 41, 74, 1);
+        }
+        .server-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid rgba(146, 184, 245, 0.45);
+            background: #132541;
+        }
+        .server-fallback-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            border: 1px solid rgba(146, 184, 245, 0.45);
+            background: #132541;
+        }
+        .server-name {
+            font-weight: 600;
+            font-size: 0.85rem;
+            line-height: 1.2;
+            max-height: 2.4em;
+            overflow: hidden;
+        }
+        .empty {
+            padding: 20px;
+            color: #b2c7f2;
+            text-align: center;
+            grid-column: 1 / -1;
+        }
+        .error { margin-top: 10px; color: #ffb3b3; min-height: 1.2em; }
+        @media (max-width: 1500px) { .grid { grid-template-columns: repeat(6, minmax(110px, 1fr)); } }
+        @media (max-width: 1100px) { .grid { grid-template-columns: repeat(4, minmax(110px, 1fr)); } }
+        @media (max-width: 760px) { .grid { grid-template-columns: repeat(2, minmax(110px, 1fr)); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1><a class="brand-link" href="/">DND Flow</a></h1>
+                <p>Server Selector</p>
+            </div>
+            <a class="brand-link" href="/logout">Logout</a>
+        </div>
+
+        <div class="panel">
+            <div class="status">Logged-In Server Selection</div>
+            <h1>Select Active Server</h1>
+            <p class="subtitle">Only servers you are a member of are shown here.</p>
+
+            <div class="grid" id="server-grid">
+                <div class="empty">Loading server options...</div>
+            </div>
+            <div class="subtitle" id="active-label" style="margin-top: 12px; margin-bottom: 0;"></div>
+            <div class="error" id="error"></div>
+        </div>
+    </div>
+
+    <script>
+        const initialActiveServerId = '{{ active_server_id or "" }}';
+        const CSRF_TOKEN = {{ csrf_token | tojson }};
+        let serverOptions = [];
+
+        function showError(message) {
+            document.getElementById('error').textContent = message || '';
+        }
+
+        function createFallbackIcon() {
+            const div = document.createElement('div');
+            div.className = 'server-fallback-icon';
+            div.textContent = 'DS';
+            return div;
+        }
+
+        function renderServers() {
+            const grid = document.getElementById('server-grid');
+            const activeLabel = document.getElementById('active-label');
+
+            if (!serverOptions.length) {
+                grid.innerHTML = '<div class="empty">No available servers for your account.</div>';
+                activeLabel.textContent = '';
+                return;
+            }
+
+            grid.innerHTML = '';
+            serverOptions.forEach(server => {
+                const card = document.createElement('button');
+                card.type = 'button';
+                card.className = 'server-card';
+                if (initialActiveServerId && server.guild_id === initialActiveServerId) {
+                    card.classList.add('active');
+                }
+
+                const displayName = server.guild_name || ('Guild ' + server.guild_id);
+                const iconHtml = server.icon_url
+                    ? `<img class="server-icon" src="${server.icon_url}" alt="${displayName}" loading="lazy" onerror="this.replaceWith(createFallbackIcon())">`
+                    : '<div class="server-fallback-icon">DS</div>';
+
+                card.innerHTML = `
+                    ${iconHtml}
+                    <div class="server-name" title="${displayName}">${displayName}</div>
+                `;
+                card.onclick = async () => {
+                    await saveAndEnter(server.guild_id);
+                };
+                grid.appendChild(card);
+            });
+
+            if (initialActiveServerId && serverOptions.some(s => s.guild_id === initialActiveServerId)) {
+                const active = serverOptions.find(s => s.guild_id === initialActiveServerId);
+                activeLabel.textContent = `Current active server: ${active.guild_name || ('Guild ' + active.guild_id)}`;
+            } else {
+                activeLabel.textContent = 'No active server selected.';
+            }
+        }
+
+        async function loadServers() {
+            try {
+                const response = await fetch('/api/server-options', { cache: 'no-store' });
+                const payload = await response.json();
+                if (!response.ok) {
+                    throw new Error(payload.error || 'Failed to load server options');
+                }
+                serverOptions = Array.isArray(payload) ? payload : [];
+                renderServers();
+            } catch (error) {
+                serverOptions = [];
+                renderServers();
+                showError(error.message || 'Failed to load server options.');
+            }
+        }
+
+        async function saveAndEnter(selectedId) {
+            const guildId = String(selectedId || '').trim();
+            if (!guildId) {
+                showError('Select a server before continuing.');
+                return;
+            }
+            showError('');
+
+            try {
+                const response = await fetch('/api/active-server', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': CSRF_TOKEN,
+                    },
+                    body: JSON.stringify({ guild_id: guildId }),
+                });
+                const payload = await response.json();
+                if (!response.ok) {
+                    throw new Error(payload.error || 'Failed to set active server');
+                }
+                window.location.href = '/dashboard';
+            } catch (error) {
+                showError(error.message || 'Failed to set active server.');
+            }
+        }
+
+        loadServers();
+    </script>
+</body>
+</html>

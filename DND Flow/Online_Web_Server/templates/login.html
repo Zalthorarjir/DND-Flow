@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Online Web Server Login</title>
+	<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+	<div class="login-page">
+		<div class="login-container">
+			<div class="login-box">
+				<h1>Online Web Server</h1>
+				<p class="subtitle">Sign in with Discord to access the website.</p>
+
+				{% if oauth_error %}
+				<div class="login-alert login-alert-error">{{ oauth_error }}</div>
+				{% endif %}
+
+				{% if oauth_configured and discord_login_url %}
+				<a class="btn btn-primary btn-discord" href="{{ discord_login_url }}">Continue with Discord</a>
+				<div class="login-info">
+					<p><strong>Required:</strong> A valid Discord account.</p>
+					<p><strong>Flow:</strong> Discord OAuth2 `identify` login.</p>
+					<p><strong>Session:</strong> Local browser session after successful sign-in.</p>
+				</div>
+				{% else %}
+				<div class="login-info">
+					<p><strong>OAuth setup required.</strong></p>
+					<p>Create <code>Online_Web_Server/.env</code> and set these values:</p>
+					<p><code>DISCORD_CLIENT_ID</code></p>
+					<p><code>DISCORD_CLIENT_SECRET</code></p>
+					<p><code>DISCORD_REDIRECT_URI</code></p>
+					<p><code>FLASK_SECRET_KEY</code></p>
+				</div>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+</body>
+</html>

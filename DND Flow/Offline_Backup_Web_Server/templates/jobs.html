@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Jobs - Discord Bot Admin Panel{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Job Management</h1>
+    <p>Create and manage jobs with wage settings</p>
+</div>
+
+<div class="jobs-container">
+    <div class="form-card">
+        <h2>Create New Job</h2>
+        <form id="jobForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="job_name">Job Name:</label>
+                    <input type="text" id="job_name" name="job_name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="job_payment">Payment (wage):</label>
+                    <input type="number" id="job_payment" name="job_payment" step="0.01" min="0" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Create Job</button>
+        </form>
+    </div>
+
+    <div class="jobs-list">
+        <h2>Current Jobs</h2>
+        {% if jobs %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Job ID</th>
+                    <th>Job Name</th>
+                    <th>Payment</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="jobsTable">
+                {% for job in jobs %}
+                <tr data-job-id="{{ job[0] }}">
+                    <td><code>{{ job[0] }}</code></td>
+                    <td>{{ job[1] }}</td>
+                    <td class="amount">{{ "%.2f"|format(job[2]) }}</td>
+                    <td>
+                        <button class="btn btn-danger btn-small" data-job-id="{{ job[0] }}" onclick="deleteJob(this.dataset.jobId)">Delete</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No jobs created yet. Create one above!</p>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('jobForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const formData = {
+        name: document.getElementById('job_name').value,
+        payment: parseFloat(document.getElementById('job_payment').value)
+    };
+
+    try {
+        const response = await fetch('/api/job/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+        const data = await response.json();
+        if (data.success) {
+            showAlert('Job created successfully!', 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showAlert('Error: ' + data.error, 'error');
+        }
+    } catch (error) {
+        showAlert('Error: ' + error.message, 'error');
+    }
+});
+
+async function deleteJob(jobId) {
+    if (!confirm('Are you sure you want to delete this job?')) return;
+
+    try {
+        const response = await fetch(`/api/job/delete/${jobId}`, { method: 'DELETE' });
+        const data = await response.json();
+        if (data.success) {
+            showAlert('Job deleted!', 'success');
+            document.querySelector(`tr[data-job-id="${jobId}"]`).remove();
+        } else {
+            showAlert('Error: ' + data.error, 'error');
+        }
+    } catch (error) {
+        showAlert('Error: ' + error.message, 'error');
+    }
+}
+</script>
+{% endblock %}
