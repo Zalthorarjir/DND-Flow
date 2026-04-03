@@ -2,6 +2,55 @@
 
 DND Flow is a self-hosted Discord bot with optional online and offline web dashboards for local/home use.
 
+## Quickstart (< 2 minutes)
+
+**What:** A self-hosted Discord bot and web dashboard that manages DnD character sheets, inventory, economy, combat, and shops for your server.
+
+**Who:** DnD players and DMs who want game-management tools inside Discord without relying on third-party services.
+
+### Prerequisites
+
+- [Python 3.11+](https://www.python.org/downloads/) installed
+- A [Discord bot token](https://discord.com/developers/applications) (create an app → Bot → copy token)
+- Windows (`.bat` scripts included)
+
+### Steps
+
+```bash
+# 1. Clone the repo
+git clone https://github.com/Zalthorarjir/DND-Flow.git
+cd DND-Flow
+
+# 2. Run the installer (creates venv, installs deps, generates .env files)
+setup_install.bat
+
+# 3. Add your bot token
+#    Open Discord_Bot\.env and set:
+#    DISCORD_TOKEN=your-token-here
+
+# 4. Start the bot
+Discord_Bot\start_bot.bat
+```
+
+### Try it — Example DnD Flow
+
+Once the bot is online in your Discord server, run these slash commands:
+
+| Step | Command | What happens |
+|------|---------|--------------|
+| 1 | `/new` | Create a new character sheet |
+| 2 | `/edit` | Fill in your character's stats and details |
+| 3 | `/submit` | Submit the sheet for DM approval |
+| 4 | `/help` | See all available commands |
+
+**Optional:** Start the offline web dashboard for a local admin panel:
+```bash
+Offline_Backup_Web_Server\start.bat
+# Opens at http://localhost:5002 — no login required
+```
+
+---
+
 ## License
 
 This project is distributed under the `DND Flow Non-Commercial Home Use License`.
