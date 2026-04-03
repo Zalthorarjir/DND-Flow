@@ -54,7 +54,8 @@ DND Flow is a self-hosted Discord bot with optional online and offline web dashb
 git clone https://github.com/Zalthorarjir/DND-Flow.git
 cd DND-Flow
 
-# 2. Run the installer (creates venv, installs deps, generates .env files)
+# 2. Run the installer (creates a Python venv and auto-installs all
+#    dependencies — Flask, discord.py, etc. — then generates .env files)
 setup_install.bat
 
 # 3. Fill in your .env files with the values from the Developer Portal (see above):
@@ -64,6 +65,8 @@ setup_install.bat
 # 4. Start the bot
 Discord_Bot\start_bot.bat
 ```
+
+> **Note — Caddy (optional):** If you plan to use the **Online Web Server** with HTTPS or a reverse proxy, you must install [Caddy](https://caddyserver.com/download) yourself — it is not bundled in the repository. Place `caddy.exe` in `tools/caddy/` or make `caddy` available in your system `PATH`. See [Online_Web_Server/README.md](Online_Web_Server/README.md) for details.
 
 ### Try it — Example DnD Flow
 
@@ -207,7 +210,7 @@ See the full terms in [`LICENSE`](LICENSE).
 
 ## Setup
 
-1. Run `setup_install.bat`
+1. Run `setup_install.bat` — this creates a Python virtual environment and automatically installs all dependencies (Flask, discord.py, etc.).
 2. Fill in your local `.env` values (see [Discord Developer Portal Setup](#discord-developer-portal-setup) above):
    - `Discord_Bot\.env` → `DISCORD_TOKEN`
    - `Online_Web_Server\.env` → `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_REDIRECT_URI`
@@ -216,7 +219,7 @@ See the full terms in [`LICENSE`](LICENSE).
    - `Online_Web_Server\start.bat`
    - `Offline_Backup_Web_Server\start.bat`
 
-If you want HTTPS / reverse-proxy support for the online dashboard, install Caddy separately from the official releases. The repository does not bundle the large `caddy.exe` binary so GitHub uploads stay within file-size limits.
+> **Caddy (optional):** If you want HTTPS / reverse-proxy support for the online dashboard, install [Caddy](https://caddyserver.com/download) separately — it is not bundled in the repository due to file-size limits. See [Online_Web_Server/README.md](Online_Web_Server/README.md) for reverse-proxy setup instructions.
 
 ## Support and contact
 
