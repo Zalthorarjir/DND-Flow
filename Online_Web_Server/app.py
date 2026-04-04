@@ -82,6 +82,20 @@ ROLE_ALLOWED_TABS = {
     ROLE_ADMIN: set(DASHBOARD_TABS),
 }
 
+SAFE_REDIRECT_ENDPOINTS = {
+    '/': 'index',
+    '/dashboard': 'dashboard_home',
+    '/overview': 'dashboard_overview',
+    '/serverconfig': 'dashboard_serverconfig',
+    '/shop': 'dashboard_shop',
+    '/server-shop': 'dashboard_server_shop',
+    '/jobs': 'dashboard_jobs',
+    '/items': 'dashboard_items',
+    '/settings': 'dashboard_settings',
+    '/users': 'dashboard_users',
+    '/audit': 'dashboard_audit',
+}
+
 # Paths to bot databases
 BOT_DIR = Path(__file__).parent.parent / "Discord_Bot"
 BOT_ENV_PATH = BOT_DIR / ".env"
@@ -868,7 +882,7 @@ def current_audit_actor():
 
 
 def normalize_next_path(raw_value):
-    """Restrict post-login redirects to local application paths."""
+    """Restrict post-login redirects to approved local dashboard paths only."""
     candidate = str(raw_value or '').strip()
     if not candidate:
         return '/overview'
@@ -877,13 +891,48 @@ def normalize_next_path(raw_value):
     if parsed.scheme or parsed.netloc:
         return '/overview'
 
-    path = parsed.path or '/overview'
-    if not path.startswith('/'):
-        return '/overview'
-    if path in {'/login', '/callback', '/logout'}:
+    path = urllib_parse.unquote(parsed.path or '/overview').strip() or '/overview'
+    if not path.startswith('/') or path in {'/login', '/callback', '/logout'}:
         return '/overview'
 
-    return f"{path}?{parsed.query}" if parsed.query else path
+    if path in SAFE_REDIRECT_ENDPOINTS:
+        return path
+
+    path_parts = [segment for segment in path.split('/') if segment]
+    if len(path_parts) == 2 and path_parts[0] == 'users' and _USER_ID_RE.fullmatch(path_parts[1]):
+        return f'/users/{path_parts[1]}'
+    if (
+        len(path_parts) == 4
+        and path_parts[0] == 'users'
+        and _USER_ID_RE.fullmatch(path_parts[1])
+        and path_parts[2] == 'characters'
+        and _SHEET_ID_RE.fullmatch(path_parts[3])
+    ):
+        return f'/users/{path_parts[1]}/characters/{path_parts[3]}'
+
+    return '/overview'
+
+
+def build_safe_redirect_target(next_path):
+    """Convert a validated next-path into a same-site application URL."""
+    safe_path = normalize_next_path(next_path)
+    endpoint_name = SAFE_REDIRECT_ENDPOINTS.get(safe_path)
+    if endpoint_name:
+        return url_for(endpoint_name)
+
+    path_parts = [segment for segment in safe_path.split('/') if segment]
+    if len(path_parts) == 2 and path_parts[0] == 'users' and _USER_ID_RE.fullmatch(path_parts[1]):
+        return url_for('dashboard_user_detail', user_id=path_parts[1])
+    if (
+        len(path_parts) == 4
+        and path_parts[0] == 'users'
+        and _USER_ID_RE.fullmatch(path_parts[1])
+        and path_parts[2] == 'characters'
+        and _SHEET_ID_RE.fullmatch(path_parts[3])
+    ):
+        return url_for('dashboard_character_detail', user_id=path_parts[1], sheet_id=path_parts[3])
+
+    return url_for('dashboard_overview')
 
 
 def build_discord_login_url(state_value):
@@ -2208,7 +2257,7 @@ def login():
     """Show the Discord OAuth login page."""
     next_path = normalize_next_path(request.args.get('next'))
     if current_discord_user():
-        return redirect(next_path)
+        return redirect(build_safe_redirect_target(next_path))
 
     oauth_error = str(request.args.get('error_message') or '').strip()
     oauth_configured = is_discord_oauth_configured()
@@ -2291,7 +2340,7 @@ def oauth_callback():
     except (urllib_error.URLError, TimeoutError, ValueError, json.JSONDecodeError) as exc:
         return redirect(url_for('login', error_message=f'Discord login failed: {exc}', next=next_path))
 
-    return redirect(next_path)
+    return redirect(build_safe_redirect_target(next_path))
 
 
 @app.route('/logout')
@@ -2904,7 +2953,7 @@ def sheet_icon_exists(user_id, sheet_id):
         icon_name = str(icon_row or '').strip()
         if not icon_name:
             return False
-        return (USERS_DIR / 'images' / str(user_id) / icon_name).exists()
+        return resolve_sheet_icon_path(user_id, icon_name).is_file()
     except Exception:
         return False
 
@@ -2964,6 +3013,35 @@ def validate_admin_name(value, label='Value', max_len=120):
     if any((ord(ch) < 32 or ord(ch) == 127) for ch in normalized):
         raise ValueError(f'{label} contains invalid control characters')
     return normalized
+
+
+def resolve_sheet_icon_path(user_id, icon_name):
+    """Resolve a sheet icon path while blocking traversal outside the user image folder."""
+    normalized_user_id = str(user_id or '').strip()
+    if not _USER_ID_RE.fullmatch(normalized_user_id):
+        raise ValueError('Invalid user ID')
+
+    raw_name = str(icon_name or '').strip()
+    if not raw_name:
+        raise ValueError('Icon filename is required')
+    if raw_name in {'.', '..'} or any(sep in raw_name for sep in ('/', '\\')):
+        raise ValueError('Invalid icon filename')
+    if len(raw_name) > 128:
+        raise ValueError('Icon filename is too long')
+    if any((ord(ch) < 32 or ord(ch) == 127) for ch in raw_name):
+        raise ValueError('Icon filename contains invalid control characters')
+
+    filename = Path(raw_name).name
+    if filename != raw_name:
+        raise ValueError('Invalid icon filename')
+
+    base_dir = (USERS_DIR / 'images' / normalized_user_id).resolve()
+    icon_path = (base_dir / filename).resolve()
+    try:
+        icon_path.relative_to(base_dir)
+    except ValueError as exc:
+        raise ValueError('Invalid icon filename') from exc
+    return icon_path
 
 
 def validate_item_quantity(quantity):
@@ -3258,8 +3336,11 @@ def get_sheet_icon(user_id, sheet_id):
         abort(404)
     if not row or not row[0]:
         abort(404)
-    icon_path = USERS_DIR / 'images' / user_id / row[0]
-    if not icon_path.exists():
+    try:
+        icon_path = resolve_sheet_icon_path(user_id, row[0])
+    except ValueError:
+        abort(404)
+    if not icon_path.is_file():
         abort(404)
     return send_file(str(icon_path))
 
@@ -3466,8 +3547,8 @@ def delete_sheet(user_id, sheet_id):
 
     if icon_filename:
         try:
-            icon_path = USERS_DIR / 'images' / user_id / icon_filename
-            if icon_path.exists():
+            icon_path = resolve_sheet_icon_path(user_id, icon_filename)
+            if icon_path.is_file():
                 icon_path.unlink()
         except Exception:
             pass
@@ -5379,7 +5460,6 @@ if __name__ == '__main__':
     bind_host = get_user_server_bind_host()
     bind_port = get_user_server_port()
     debug_enabled = get_user_server_bool_setting('FLASK_DEBUG', False)
-    public_base_url = get_public_base_url()
     secure_public_url = is_secure_public_url()
     ssl_context = get_ssl_context_config()
     trust_proxy_headers = get_user_server_bool_setting('TRUST_PROXY_HEADERS', False)
@@ -5392,16 +5472,15 @@ if __name__ == '__main__':
     print("=" * 60)
     print("DND Flow - Online Web Server")
     print("=" * 60)
-    print(f"\n[OK] Starting on {public_base_url}")
-    print(f"[OK] Listening on {bind_host}:{bind_port}")
+    print("\n[OK] Server startup initialized")
     print("[OK] Discord login required\n")
 
     if ssl_context:
-        print(f"[OK] TLS enabled with certificate: {get_ssl_cert_file()}")
+        print("[OK] TLS enabled")
     elif secure_public_url and trust_proxy_headers:
-        print("[OK] HTTPS expected via reverse proxy (TRUST_PROXY_HEADERS=True)")
+        print("[OK] HTTPS expected via reverse proxy")
     elif secure_public_url:
-        print("! HTTPS is configured in PUBLIC_BASE_URL / DISCORD_REDIRECT_URI")
+        print("! HTTPS is configured for the public URL")
         print("! but Flask is still serving plain HTTP on this port.")
         print("! Configure ONLINE_WEB_SERVER_SSL_CERT and ONLINE_WEB_SERVER_SSL_KEY, or terminate TLS in a reverse proxy.\n")
 

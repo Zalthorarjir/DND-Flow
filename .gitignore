@@ -1,0 +1,32 @@
+# Root export / deployment safety
+.venv/
+venv/
+**/.venv/
+**/venv/
+**/__pycache__/
+**/.pytest_cache/
+**/*.py[cod]
+**/*.log
+**/.env
+**/.env.local
+**/admin_creds.json
+
+# Runtime data / user-generated content
+Discord_Bot/databases/*.db
+Discord_Bot/databases/*/*.db
+Online_Web_Server/uploads/items/*
+!Online_Web_Server/uploads/items/.gitkeep
+Online_Web_Server/static/server_icons/*
+!Online_Web_Server/static/server_icons/.gitkeep
+Offline_Backup_Web_Server/static/server_icons/*
+!Offline_Backup_Web_Server/static/server_icons/.gitkeep
+
+# Optional local reverse-proxy binaries (download separately, do not commit)
+**/tools/caddy/*.exe
+**/tools/caddy/*.zip
+
+# Editor / OS noise
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

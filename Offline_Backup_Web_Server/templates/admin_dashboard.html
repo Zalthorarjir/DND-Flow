@@ -2912,16 +2912,39 @@
                 return;
             }
 
-            list.innerHTML = fields.map(field => `
-                <div class="list-item">
-                    <div class="list-item-info">
-                        <div class="list-item-title">${field}</div>
-                        <div class="list-item-detail">${field.toLowerCase() === 'status' || field.toLowerCase() === 'name' ? 'Permanent field' : 'Custom field'}</div>
-                    </div>
-                    ${field.toLowerCase() !== 'status' && field.toLowerCase() !== 'name' ?
-                        `<button class="btn-danger" onclick='deleteField(${JSON.stringify(field)}, ${JSON.stringify(serverId)})'>Remove</button>` : ''}
-                </div>
-            `).join('');
+            list.replaceChildren();
+            fields.forEach(field => {
+                const normalizedField = String(field || '');
+                const fieldKey = normalizedField.toLowerCase();
+                const item = document.createElement('div');
+                item.className = 'list-item';
+
+                const info = document.createElement('div');
+                info.className = 'list-item-info';
+
+                const title = document.createElement('div');
+                title.className = 'list-item-title';
+                title.textContent = normalizedField;
+
+                const detail = document.createElement('div');
+                detail.className = 'list-item-detail';
+                detail.textContent = fieldKey === 'status' || fieldKey === 'name' ? 'Permanent field' : 'Custom field';
+
+                info.appendChild(title);
+                info.appendChild(detail);
+                item.appendChild(info);
+
+                if (fieldKey !== 'status' && fieldKey !== 'name') {
+                    const removeButton = document.createElement('button');
+                    removeButton.className = 'btn-danger';
+                    removeButton.type = 'button';
+                    removeButton.textContent = 'Remove';
+                    removeButton.addEventListener('click', () => deleteField(normalizedField, serverId));
+                    item.appendChild(removeButton);
+                }
+
+                list.appendChild(item);
+            });
         }
 
         async function addField() {
@@ -2958,7 +2981,7 @@
             }
             if (!confirm(`Delete field "${fieldName}"?`)) return;
             try {
-                await apiCall('DELETE', `/servers/${serverId}/fields/${encodeURIComponent(fieldName)}`);
+                await apiCall('DELETE', `/servers/${encodeURIComponent(serverId)}/fields/${encodeURIComponent(fieldName)}`);
                 showAlert('server', `Field "${fieldName}" removed!`, 'success');
                 loadServerData();
             } catch (error) {
