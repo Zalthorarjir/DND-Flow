@@ -677,12 +677,31 @@ def add_guild_template_field(guild_id: int, field_name: str) -> None:
 
 
 def remove_guild_template_field(guild_id: int, field_name: str) -> None:
-    """Delete a field from a guild template."""
+    """Delete a field from a guild template and remove it from existing sheets."""
     ensure_sheet_templates_schema()
+    normalized_guild_id = str(guild_id)
+    normalized_field_name = str(field_name or '').strip()
+    if not normalized_field_name:
+        return
+
     conn = sqlite3.connect(str(SHEETS_DB))
     try:
         c = conn.cursor()
-        c.execute('DELETE FROM guild_templates WHERE guild_id=? AND field_name=?', (str(guild_id), field_name))
+        c.execute(
+            '''DELETE FROM sheet_fields
+               WHERE field_name=?
+                 AND sheet_id IN (
+                     SELECT s.sheet_id
+                     FROM sheets s
+                     JOIN characters c ON c.character_id=s.character_id
+                     WHERE CAST(c.guild_id AS TEXT)=?
+                 )''',
+            (normalized_field_name, normalized_guild_id),
+        )
+        c.execute(
+            'DELETE FROM guild_templates WHERE guild_id=? AND field_name=?',
+            (normalized_guild_id, normalized_field_name),
+        )
         conn.commit()
     finally:
         conn.close()
@@ -695,9 +714,35 @@ def clear_guild_template_fields(guild_id: int | None = None) -> None:
     try:
         c = conn.cursor()
         if guild_id is None:
+            field_rows = c.execute(
+                'SELECT DISTINCT field_name FROM guild_templates WHERE field_name IS NOT NULL AND TRIM(field_name) != ""'
+            ).fetchall()
+            template_fields = [str(row[0]).strip() for row in field_rows if row and str(row[0]).strip()]
+            if template_fields:
+                placeholders = ', '.join('?' for _ in template_fields)
+                c.execute(f'DELETE FROM sheet_fields WHERE field_name IN ({placeholders})', tuple(template_fields))
             c.execute('DELETE FROM guild_templates')
         else:
-            c.execute('DELETE FROM guild_templates WHERE guild_id=?', (str(guild_id),))
+            normalized_guild_id = str(guild_id)
+            field_rows = c.execute(
+                'SELECT field_name FROM guild_templates WHERE guild_id=? AND field_name IS NOT NULL AND TRIM(field_name) != ""',
+                (normalized_guild_id,),
+            ).fetchall()
+            template_fields = [str(row[0]).strip() for row in field_rows if row and str(row[0]).strip()]
+            if template_fields:
+                placeholders = ', '.join('?' for _ in template_fields)
+                c.execute(
+                    f'''DELETE FROM sheet_fields
+                        WHERE field_name IN ({placeholders})
+                          AND sheet_id IN (
+                              SELECT s.sheet_id
+                              FROM sheets s
+                              JOIN characters c ON c.character_id=s.character_id
+                              WHERE CAST(c.guild_id AS TEXT)=?
+                          )''',
+                    (*template_fields, normalized_guild_id),
+                )
+            c.execute('DELETE FROM guild_templates WHERE guild_id=?', (normalized_guild_id,))
         conn.commit()
     finally:
         conn.close()

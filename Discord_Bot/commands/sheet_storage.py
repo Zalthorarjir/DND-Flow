@@ -502,12 +502,39 @@ def get_template(guild_id: str) -> list:
         conn.close()
 
 
+def _remove_template_values_from_existing_sheets(conn: sqlite3.Connection, guild_id: str, field_names: list[str]) -> None:
+    """Delete removed template fields from all existing sheets in the guild."""
+    normalized_fields = [str(name or '').strip() for name in field_names if str(name or '').strip()]
+    if not normalized_fields:
+        return
+
+    placeholders = ', '.join('?' for _ in normalized_fields)
+    conn.execute(
+        f"""
+        DELETE FROM sheet_fields
+        WHERE field_name IN ({placeholders})
+          AND sheet_id IN (
+              SELECT s.sheet_id
+              FROM sheets s
+              JOIN characters c ON c.character_id = s.character_id
+              WHERE c.guild_id = ?
+          )
+        """,
+        (*normalized_fields, str(guild_id)),
+    )
+
+
 def remove_template_field(guild_id: str, field_name: str) -> None:
+    normalized_field = str(field_name or '').strip()
+    if not normalized_field:
+        return
+
     conn = connect_db()
     try:
+        _remove_template_values_from_existing_sheets(conn, guild_id, [normalized_field])
         conn.execute(
             "DELETE FROM guild_templates WHERE guild_id=? AND field_name=?",
-            (guild_id, field_name),
+            (guild_id, normalized_field),
         )
         conn.commit()
     finally:
@@ -515,9 +542,14 @@ def remove_template_field(guild_id: str, field_name: str) -> None:
 
 
 def clear_template(guild_id: str) -> None:
-    """Remove all template fields for a guild."""
+    """Remove all template fields for a guild and clear them from existing sheets."""
     conn = connect_db()
     try:
+        rows = conn.execute(
+            "SELECT field_name FROM guild_templates WHERE guild_id=? AND field_name IS NOT NULL AND TRIM(field_name) != ''",
+            (guild_id,),
+        ).fetchall()
+        _remove_template_values_from_existing_sheets(conn, guild_id, [row[0] for row in rows])
         conn.execute("DELETE FROM guild_templates WHERE guild_id=?", (guild_id,))
         conn.commit()
     finally:
