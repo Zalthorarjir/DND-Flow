@@ -97,6 +97,20 @@ SAFE_REDIRECT_ENDPOINTS = {
     '/audit': 'dashboard_audit',
 }
 
+ALLOWED_HTML_TEMPLATES = {
+    'account': 'account.html',
+    'admin_dashboard': 'admin_dashboard.html',
+    'base': 'base.html',
+    'cooldown': 'cooldown.html',
+    'dashboard': 'dashboard.html',
+    'items': 'items.html',
+    'jobs': 'jobs.html',
+    'login': 'login.html',
+    'no_role_access': 'no_role_access.html',
+    'server_selector': 'server_selector.html',
+    'shop': 'shop.html',
+}
+
 # Paths to bot databases
 BOT_DIR = Path(__file__).parent.parent / "Discord_Bot"
 BOT_ENV_PATH = BOT_DIR / ".env"
@@ -2519,11 +2533,12 @@ def dashboard_character_detail(user_id, sheet_id):
 @app.route('/html/<page_name>')
 @app.route('/html/<page_name>.html')
 def html_page(page_name):
-    """Render a template page by name, e.g. /html/admin_dashboard"""
-    if not re.fullmatch(r'[A-Za-z0-9_-]+', page_name or ''):
+    """Render only explicitly allowed template pages."""
+    normalized_page = str(page_name or '').strip()
+    template_name = ALLOWED_HTML_TEMPLATES.get(normalized_page)
+    if not template_name:
         abort(404)
 
-    template_name = f'{page_name}.html'
     template_path = TEMPLATES_DIR / template_name
     if not template_path.is_file():
         abort(404)
