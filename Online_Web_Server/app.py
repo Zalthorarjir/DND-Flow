@@ -21,6 +21,7 @@ from urllib import parse as urllib_parse
 
 from dotenv import dotenv_values
 from werkzeug.middleware.proxy_fix import ProxyFix
+from werkzeug.utils import safe_join, secure_filename
 
 ONLINE_WEB_SERVER_DIR = Path(__file__).parent
 ONLINE_WEB_SERVER_ENV_PATH = ONLINE_WEB_SERVER_DIR / ".env"
@@ -513,6 +514,29 @@ def ensure_server_scoped_dashboard_schema(preferred_guild_id=None):
     _ensure_scoped_combat_rules_table(scope_guild_ids)
 
 
+def validate_stored_filename(value, label='Filename', max_len=128):
+    """Validate a database-backed filename before using it in a filesystem path."""
+    normalized = str(value or '').strip()
+    if not normalized:
+        raise ValueError(f'{label} is required')
+    if len(normalized) > max_len:
+        raise ValueError(f'{label} is too long')
+
+    safe_name = secure_filename(normalized)
+    if not safe_name or safe_name != normalized or safe_name in {'.', '..'}:
+        raise ValueError(f'Invalid {label.lower()}')
+    return safe_name
+
+
+def resolve_item_image_path(image_name):
+    """Resolve an item image path while keeping access inside the items directory."""
+    safe_name = validate_stored_filename(image_name, 'Item image name', max_len=160)
+    joined_path = safe_join(str(ITEMS_DIR), safe_name)
+    if not joined_path:
+        raise ValueError('Invalid item image path')
+    return Path(joined_path)
+
+
 def delete_item_image_if_unreferenced(image_name):
     """Delete an item image only when no remaining item rows reference it."""
     normalized = str(image_name or '').strip()
@@ -528,9 +552,12 @@ def delete_item_image_if_unreferenced(image_name):
     if row:
         return
 
-    image_path = os.path.join(str(ITEMS_DIR), normalized)
-    if os.path.exists(image_path):
-        os.remove(image_path)
+    try:
+        image_path = resolve_item_image_path(normalized)
+    except ValueError:
+        return
+    if image_path.is_file():
+        image_path.unlink()
 
 
 def _resolve_storage_sheet_id(user_id, external_sheet_id):
@@ -3021,27 +3048,12 @@ def resolve_sheet_icon_path(user_id, icon_name):
     if not _USER_ID_RE.fullmatch(normalized_user_id):
         raise ValueError('Invalid user ID')
 
-    raw_name = str(icon_name or '').strip()
-    if not raw_name:
-        raise ValueError('Icon filename is required')
-    if raw_name in {'.', '..'} or any(sep in raw_name for sep in ('/', '\\')):
+    filename = validate_stored_filename(icon_name, 'Icon filename')
+    base_dir = USERS_DIR / 'images' / normalized_user_id
+    joined_path = safe_join(str(base_dir), filename)
+    if not joined_path:
         raise ValueError('Invalid icon filename')
-    if len(raw_name) > 128:
-        raise ValueError('Icon filename is too long')
-    if any((ord(ch) < 32 or ord(ch) == 127) for ch in raw_name):
-        raise ValueError('Icon filename contains invalid control characters')
-
-    filename = Path(raw_name).name
-    if filename != raw_name:
-        raise ValueError('Invalid icon filename')
-
-    base_dir = (USERS_DIR / 'images' / normalized_user_id).resolve()
-    icon_path = (base_dir / filename).resolve()
-    try:
-        icon_path.relative_to(base_dir)
-    except ValueError as exc:
-        raise ValueError('Invalid icon filename') from exc
-    return icon_path
+    return Path(joined_path)
 
 
 def validate_item_quantity(quantity):
@@ -4550,12 +4562,14 @@ def get_server_shop_item_image(item_name):
         if not row or not row.get('image'):
             return jsonify({"error": "No image for item"}), 404
 
-        images_dir = str(ITEMS_DIR)
-        image_path = os.path.join(images_dir, row['image'])
-        if not os.path.exists(image_path):
+        try:
+            image_path = resolve_item_image_path(row['image'])
+        except ValueError:
+            return jsonify({"error": "Image not found"}), 404
+        if not image_path.is_file():
             return jsonify({"error": "Image not found"}), 404
 
-        return send_file(image_path)
+        return send_file(str(image_path))
     except Exception as e:
         return api_error_response('Request failed.', 400, e)
 
@@ -5252,11 +5266,10 @@ def upload_item_image(item_name):
         image_id = f"{uuid.uuid4().hex}.{ext}"
 
         # Ensure directory exists and use proper path
-        images_dir = str(ITEMS_DIR)
-        os.makedirs(images_dir, exist_ok=True)
-        image_path = os.path.join(images_dir, image_id)
+        os.makedirs(str(ITEMS_DIR), exist_ok=True)
+        image_path = resolve_item_image_path(image_id)
 
-        file.save(image_path)
+        file.save(str(image_path))
 
         # Update database
         conn = get_db_connection(ITEMS_DB)
@@ -5295,12 +5308,14 @@ def get_item_image(item_name):
         if not row or not row.get('image'):
             return jsonify({"error": "No image for item"}), 404
 
-        images_dir = str(ITEMS_DIR)
-        image_path = os.path.join(images_dir, row['image'])
-        if not os.path.exists(image_path):
+        try:
+            image_path = resolve_item_image_path(row['image'])
+        except ValueError:
+            return jsonify({"error": "Image not found"}), 404
+        if not image_path.is_file():
             return jsonify({"error": "Image not found"}), 404
 
-        return send_file(image_path)
+        return send_file(str(image_path))
     except Exception as e:
         return api_error_response('Request failed.', 400, e)
 
