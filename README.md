@@ -1,3 +1,7 @@
+# WARNING THIS REPO IS OUTDATED
+UPDATES WILL FOLLOW IN THE FORSEEABLE FUTURE.
+FEEL FREE TO JOIN/TEST THE MOST UP-TO-DATE VERSION FOR NOW ON: https://discord.gg/KCaayG3Tvt
+
 # DND Flow
 
 DND Flow is a self-hosted Discord bot with optional online and offline web dashboards for local/home use.
